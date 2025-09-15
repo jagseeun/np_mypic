@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+  <meta charset="UTF-8" />
+  <title>Cloudinary 이미지 업로드</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #eee;
+      padding: 50px;
+      text-align: center;
+    }
+    h1 {
+      color: #222;
+    }
+    form {
+      background-color: white;
+      padding: 20px;
+      border-radius: 10px;
+      display: inline-block;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+    button {
+      background-color: #4CAF50;
+      color: white;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 16px;
+    }
+
+    #result {
+      margin-top: 20px;
+    }
+    img {
+      max-width: 300px;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+
+<body>
+
+  <h1>📤 이미지 업로드</h1>
+
+  <!-- 📎 이미지 업로드 폼 -->
+  <form id="uploadForm" enctype="multipart/form-data">
+    <input type="file" name="file" accept="image/*" required />
+    <br /><br />
+    <button type="submit">업로드</button>
+  </form>
+
+  <!-- 🖼️ 업로드 결과를 보여줄 영역 -->
+  <div id="result"></div>
+
+  <!-- 🔁 페이지 이동 버튼 -->
+  <button onclick="move()">이동</button>
+
+  <script>
+    const form = document.getElementById("uploadForm");
+    const resultDiv = document.getElementById("result");
+
+    // 🧠 업로드 폼 전송 시 실행되는 이벤트
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault(); // 기본 폼 제출 막기
+      const formData = new FormData(form); // 폼 데이터 생성
+
+      try {
+        // 🔄 서버로 이미지 전송 (POST /upload)
+        const res = await fetch("/upload", {
+          method: "POST",
+          body: formData,
+        });
+
+        // 📦 서버 응답이 JSON인지 확인
+        const contentType = res.headers.get("content-type");
+        if (!contentType || !contentType.includes("application/json")) {
+          const text = await res.text(); // 오류 메시지 받기
+          throw new Error("JSON 아님: " + text);
+        }
+
+        const json = await res.json();
+
+        // ✅ 업로드 성공한 경우 이미지 보여주기
+        if (json.url) {
+          resultDiv.innerHTML = `
+            <p><strong>✅ 업로드 성공!</strong></p>
+            <a href="${json.url}" target="_blank">${json.url}</a>
+            <br/>
+            <img src="${json.url}" alt="업로드된 이미지" />
+          `;
+
+          // 🔍 파일명에서 public_id 뽑기
+          const filename = json.url.substring(json.url.lastIndexOf("/") + 1);
+          const id = filename.split(".")[0]; // 확장자 제거
+          console.log(id); // 👉 여기서 cloudinary 이미지 ID를 사용할 수 있음
+
+        } else {
+          // ❌ 실패했을 때
+          resultDiv.innerHTML = `<p style="color:red;">❌ 실패: ${JSON.stringify(json)}</p>`;
+        }
+      } catch (err) {
+        // 🧨 fetch 오류 등
+        resultDiv.innerHTML = `<p style="color:red;">❌ 오류 발생: ${err.message}</p>`;
+      }
+    });
+
+    // 📍 이동 버튼 클릭 시 페이지 이동
+    function move() {
+      location.href = "./testtest.html";
+    }
+  </script>
+
+</body>
+
+</html>

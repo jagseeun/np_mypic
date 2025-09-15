@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>My Pic! - 메인</title>
+  <style>
+    @font-face {
+      font-family: 'Ownglyph_ParkDaHyun';
+      src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/2411-3@1.0/Ownglyph_ParkDaHyun.woff2') format('woff2');
+      font-weight: normal;
+      font-display: swap;
+    }
+    * {
+      font-family: 'Ownglyph_ParkDaHyun';
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      background: linear-gradient(180deg, #c8f5d4 0%, #a8d8ea 100%);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .main-title {
+      font-size: 5.5rem;
+      font-weight: bold;
+      color: #4a9b8e;
+      margin-bottom: 30px;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .container {
+      max-width: 800px;
+      width: 100%;
+      background: rgba(255, 255, 255, 0.7);
+      border-radius: 20px;
+      padding: 20px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+      position: relative;
+    }
+
+    .logout-btn {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      background: none;
+      border: none;
+      cursor: pointer;
+      width: 65px;
+      height: 65px;
+    }
+    .logout-btn img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+
+    .point-display {
+      position: absolute;
+      top: 30px;
+      right: 40px;
+      font-size: 2.2rem;
+      font-weight: bold;
+      color: #4a9b8e;
+    }
+
+    .upload-btn-container {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .upload-btn {
+      background: #4a9b8e;
+      color: white;
+      padding: 10px 45px;
+      font-size: 2.2rem;
+      font-weight: bold;
+      border: none;
+      border-radius: 30px;
+      cursor: pointer;
+    }
+
+    .gallery-container {
+      max-height: 500px;
+      overflow-y: auto;
+      padding-right: 15px;
+    }
+    .gallery {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 15px;
+    }
+    .image-item {
+      position: relative;
+      width: 100%;
+      padding-top: 100%;
+      border-radius: 10px;
+      overflow: hidden;
+      background: #f0f0f0;
+    }
+    .image-item img {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      object-fit: cover;
+    }
+
+    @media (max-width: 600px) {
+      .gallery { grid-template-columns: repeat(2, 1fr); }
+    }
+  </style>
+</head>
+<body>
+  <!-- 로그아웃 버튼 -->
+  <button class="logout-btn" onclick="handleLogout()">
+    <img src="logout.png" alt="로그아웃">
+  </button>
+
+  <h1 class="main-title">My Pic!</h1>
+
+  <div class="container">
+    <span class="point-display">포인트 : <span id="user-points">0</span></span>
+
+    <div class="upload-btn-container">
+      <button class="upload-btn">사진 업로드</button>
+    </div>
+
+    <!-- 갤러리 -->
+    <section class="gallery-container">
+      <div class="gallery">
+        <div class="image-item"><img src="images/1.jpg" alt="이미지 1"></div>
+        <div class="image-item"><img src="images/2.jpg" alt="이미지 2"></div>
+        <div class="image-item"><img src="images/3.jpg" alt="이미지 3"></div>
+        <div class="image-item"><img src="images/4.jpg" alt="이미지 4"></div>
+        <div class="image-item"><img src="images/5.jpg" alt="이미지 5"></div>
+        <div class="image-item"><img src="images/6.jpg" alt="이미지 6"></div>
+        <div class="image-item"><img src="images/7.jpg" alt="이미지 7"></div>
+        <div class="image-item"><img src="images/8.jpg" alt="이미지 8"></div>
+        <div class="image-item"><img src="images/9.jpg" alt="이미지 9"></div>
+        <div class="image-item"><img src="images/10.jpg" alt="이미지 10"></div>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const pointsDisplay = document.getElementById('user-points');
+      const uploadBtn = document.querySelector('.upload-btn');
+
+      // 기본 포인트 60으로 시작
+      let userPoints = 60;
+      pointsDisplay.textContent = userPoints;
+
+      // 업로드 버튼 클릭 시 포인트 +20 후 페이지 이동
+      uploadBtn.addEventListener('click', () => {
+        userPoints += 20;
+        pointsDisplay.textContent = userPoints;
+
+        location.href = "./test.html"; // 업로드 페이지로 이동
+      });
+    });
+
+    // 로그아웃 버튼 클릭 시 동작
+    function handleLogout() {
+      alert('로그아웃 되었습니다.');
+      window.location.href = 'index.html';
+    }
+  </script>
+</body>
+</html>
