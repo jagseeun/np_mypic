@@ -1,65 +1,129 @@
 // 📦 필요한 모듈 불러오기
-const express = require("express");          // 웹 서버를 만들기 위한 프레임워크
-const multer = require("multer");            // 파일 업로드를 쉽게 도와주는 미들웨어
-const dotenv = require("dotenv");            // .env 파일에서 환경변수 읽기
-const streamifier = require("streamifier");  // 버퍼를 스트림으로 바꿔주는 유틸
-const { v2: cloudinary } = require("cloudinary"); // Cloudinary API (v2 버전 사용)
+const express = require("express");
+const multer = require("multer");
+const dotenv = require("dotenv");
+const streamifier = require("streamifier");
+const { v2: cloudinary } = require("cloudinary");
+const mysql = require("mysql2"); // 🟢 MySQL 모듈 추가
+const bcrypt = require('bcrypt'); // 🟢 비밀번호 암호화 모듈 추가
+const path = require('path'); // 🟢 경로 관리 모듈 추가
 
 // 🌱 .env 파일에 있는 환경변수 로드
 dotenv.config();
 
-// ☁️ Cloudinary 계정 정보 설정 (.env 파일에서 불러옴)
+// ☁️ Cloudinary 계정 정보 설정
 cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,  // 예: my-cloud
-  api_key: process.env.CLOUDINARY_API_KEY,        // 발급받은 API 키
-  api_secret: process.env.CLOUDINARY_API_SECRET,  // 보안용 API 시크릿
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
 // 🚀 Express 앱 생성
 const app = express();
 
-// 📦 multer 설정: 메모리 저장소에 파일 저장 (임시로 서버 메모리에 보관)
+// ⚙️ 미들웨어 설정
+app.use(express.json()); // JSON 형식의 요청 본문을 파싱 (회원가입/로그인)
+app.use(express.urlencoded({ extended: true })); // URL-encoded 형식의 요청 본문을 파싱
+app.use(express.static("np_mypic")); // 정적 파일(HTML, CSS, JS) 제공
+
+// 📦 multer 설정: 메모리 저장소에 파일 저장
 const upload = multer({ storage: multer.memoryStorage() });
 
-// 🌐 정적 파일 제공 설정: np_mypic 폴더 안의 index.html 등 클라이언트 파일 제공
-// 이 설정 덕분에 http://localhost:5000/index.html 이렇게 열 수 있음
-app.use(express.static("np_mypic"));
+// 💧 MySQL 데이터베이스 연결 설정
+// 🚨 여기에 본인의 MySQL 계정 정보로 바꿔주세요!
+const db = mysql.createPool({
+  host: '127.0.0.1', // 호스트 주소
+  user: 'root',
+  password: '0000',
+  database: 'mypic',
+  port: 3307 // 🚨 포트 번호는 별도의 속성으로 분리
+});
 
-
-// 📤 버퍼 데이터를 Cloudinary로 업로드하는 함수
+// 📤 버퍼 데이터를 Cloudinary로 업로드하는 함수 (기존 코드)
 const uploadToCloudinary = (buffer) => {
   return new Promise((resolve, reject) => {
-    // Cloudinary 업로드 스트림 생성
     const stream = cloudinary.uploader.upload_stream(
-      { folder: "mypic_uploads" }, // 업로드할 Cloudinary 폴더 지정
+      { folder: "mypic_uploads" },
       (error, result) => {
-        if (error) return reject(error); // 에러 시 거부
-        resolve(result);                 // 성공 시 결과 반환
+        if (error) return reject(error);
+        resolve(result);
       }
     );
-
-    // 파일 버퍼를 스트림으로 만들어서 Cloudinary로 전송
     streamifier.createReadStream(buffer).pipe(stream);
   });
 };
+
+// ---
+// 🚀 API 라우트
+
+// 📩 회원가입 API 라우트
+app.post("/signup", async (req, res) => {
+  const { username, password } = req.body;
+
+  if (!username || !password) {
+    return res.status(400).send("아이디와 비밀번호를 모두 입력해주세요.");
+  }
+
+  try {
+    const [rows] = await db.promise().query("SELECT * FROM users WHERE username = ?", [username]);
+    if (rows.length > 0) {
+      return res.status(409).send("이미 존재하는 아이디입니다.");
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+    await db.promise().query("INSERT INTO users (username, password) VALUES (?, ?)", [username, hashedPassword]);
+
+    console.log(`회원가입 성공: ${username}`);
+    res.status(201).send("회원가입이 성공적으로 완료되었습니다.");
+
+  } catch (error) {
+    console.error("회원가입 오류:", error);
+    res.status(500).send("회원가입 중 오류가 발생했습니다.");
+  }
+});
+
+
+// 📩 로그인 API 라우트
+app.post("/login", async (req, res) => {
+  const { username, password } = req.body;
+
+  if (!username || !password) {
+    return res.status(400).send("아이디와 비밀번호를 모두 입력해주세요.");
+  }
+
+  try {
+    const [rows] = await db.promise().query("SELECT * FROM users WHERE username = ?", [username]);
+    const user = rows[0];
+
+    if (!user) {
+      return res.status(401).send("아이디 또는 비밀번호가 올바르지 않습니다.");
+    }
+
+    const isPasswordMatch = await bcrypt.compare(password, user.password);
+
+    if (isPasswordMatch) {
+      console.log(`로그인 성공: ${username}`);
+      res.status(200).send("로그인에 성공했습니다.");
+    } else {
+      res.status(401).send("아이디 또는 비밀번호가 올바르지 않습니다.");
+    }
+
+  } catch (error) {
+    console.error("로그인 오류:", error);
+    res.status(500).send("로그인 중 오류가 발생했습니다.");
+  }
+});
 
 
 // 📩 파일 업로드 API 라우트
 app.post("/upload", upload.single("file"), async (req, res) => {
   try {
-    // 요청에 파일이 없으면 에러 응답
     if (!req.file) {
       return res.status(400).json({ error: "파일이 없습니다." });
     }
-
-    // 업로드 실행 (버퍼를 Cloudinary로 전송)
     const result = await uploadToCloudinary(req.file.buffer);
-
-    // 업로드된 이미지의 URL을 JSON으로 응답
     res.json({ url: result.secure_url });
-
   } catch (err) {
-    // 에러 발생 시 서버 로그와 함께 에러 응답
     console.error("업로드 실패:", err);
     res.status(500).json({ error: "업로드 실패: " + err.message });
   }

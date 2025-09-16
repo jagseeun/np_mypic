@@ -85,7 +85,6 @@
     .secondary {
       background: #6b9b8e;
     }
-
   </style>
 </head>
 
@@ -94,36 +93,77 @@
     <h1 class="title">My Pic!</h1>
 
     <div class="input-group">
-      <input type="text" class="input-field" placeholder="아이디를 입력하세요">
+      <input type="text" class="input-field" placeholder="아이디를 입력하세요" id="usernameInput">
     </div>
 
     <div class="input-group">
-      <input type="password" class="input-field" placeholder="비밀번호를 입력하세요">
+      <input type="password" class="input-field" placeholder="비밀번호를 입력하세요" id="passwordInput">
     </div>
 
     <div class="button-group">
-      <button class="primary">로그인</button>
-      <button class="secondary">회원가입</button>
+      <button class="primary" id="loginBtn">로그인</button>
+      <button class="secondary" id="signupBtn">회원가입</button>
     </div>
   </div>
 
   <script>
     document.addEventListener('DOMContentLoaded', () => {
-      const loginBtn = document.querySelector('.primary');
-      const signupBtn = document.querySelector('.secondary');
+      const loginBtn = document.getElementById('loginBtn');
+      const signupBtn = document.getElementById('signupBtn');
+      const usernameInput = document.getElementById('usernameInput');
+      const passwordInput = document.getElementById('passwordInput');
 
       // 로그인 버튼 클릭 시 실행
-      loginBtn.addEventListener('click', (e) => {
+      loginBtn.addEventListener('click', async (e) => {
         e.preventDefault(); // 폼 기본 동작 방지
-        console.log('로그인 버튼 클릭');
-        location.href = "./testtest.html"; // 로그인 후 이동할 페이지
+
+        const username = usernameInput.value;
+        const password = passwordInput.value;
+
+        try {
+          const response = await fetch('/login', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ username, password }),
+          });
+
+          const message = await response.text();
+          alert(message);
+          
+          if (response.ok) {
+            // 로그인 성공 시
+            window.location.href = "./testtest.html"; // 원하는 페이지로 이동
+          }
+        } catch (error) {
+          console.error('로그인 요청 오류:', error);
+          alert('로그인 중 네트워크 오류가 발생했습니다.');
+        }
       });
 
       // 회원가입 버튼 클릭 시 실행
-      signupBtn.addEventListener('click', (e) => {
+      signupBtn.addEventListener('click', async (e) => {
         e.preventDefault();
-        console.log('회원가입 버튼 클릭');
-        location.href = "./testtest.html"; // 회원가입 후 이동할 페이지
+
+        const username = usernameInput.value;
+        const password = passwordInput.value;
+
+        try {
+          const response = await fetch('/signup', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ username, password }),
+          });
+
+          const message = await response.text();
+          alert(message);
+        } catch (error) {
+          console.error('회원가입 요청 오류:', error);
+          alert('회원가입 중 네트워크 오류가 발생했습니다.');
+        }
       });
     });
   </script>
