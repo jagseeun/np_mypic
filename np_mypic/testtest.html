@@ -136,44 +136,106 @@
 
     <!-- 갤러리 -->
     <section class="gallery-container">
-      <div class="gallery">
-        <div class="image-item"><img src="images/1.jpg" alt="이미지 1"></div>
-        <div class="image-item"><img src="images/2.jpg" alt="이미지 2"></div>
-        <div class="image-item"><img src="images/3.jpg" alt="이미지 3"></div>
-        <div class="image-item"><img src="images/4.jpg" alt="이미지 4"></div>
-        <div class="image-item"><img src="images/5.jpg" alt="이미지 5"></div>
-        <div class="image-item"><img src="images/6.jpg" alt="이미지 6"></div>
-        <div class="image-item"><img src="images/7.jpg" alt="이미지 7"></div>
-        <div class="image-item"><img src="images/8.jpg" alt="이미지 8"></div>
-        <div class="image-item"><img src="images/9.jpg" alt="이미지 9"></div>
-        <div class="image-item"><img src="images/10.jpg" alt="이미지 10"></div>
-      </div>
-    </section>
-  </div>
+  <div class="gallery" id="userGallery"></div>
+</section>
 
-  <script>
+<script>
     document.addEventListener('DOMContentLoaded', () => {
-      const pointsDisplay = document.getElementById('user-points');
-      const uploadBtn = document.querySelector('.upload-btn');
+        const pointsDisplay = document.getElementById('user-points');
+        const uploadBtn = document.querySelector('.upload-btn');
 
-      // 기본 포인트 60으로 시작
-      let userPoints = 60;
-      pointsDisplay.textContent = userPoints;
+        // 💡 1. 페이지 로드 시 포인트와 사진 목록을 불러옵니다.
+        loadUserPoints();
+        loadUserPhotos();
 
-      // 업로드 버튼 클릭 시 포인트 +20 후 페이지 이동
-      uploadBtn.addEventListener('click', () => {
-        userPoints += 20;
-        pointsDisplay.textContent = userPoints;
 
-        location.href = "./test.html"; // 업로드 페이지로 이동
-      });
+        // 💡 2. 업로드 버튼 리스너 수정: 포인트 증가 로직은 서버에 맡깁니다.
+        uploadBtn.addEventListener('click', () => {
+            // 업로드 페이지로 이동 (실제 포인트 증가는 업로드 API에서 처리됨)
+            location.href = "./test.html"; 
+        });
     });
 
-    // 로그아웃 버튼 클릭 시 동작
-    function handleLogout() {
-      alert('로그아웃 되었습니다.');
-      window.location.href = 'index.html';
+    // 서버에서 사용자 포인트를 불러와 표시
+    async function loadUserPoints() {
+        const pointsDisplay = document.getElementById('user-points');
+        try {
+            const response = await fetch('/api/user/points');
+            if (response.ok) {
+                const data = await response.json();
+                pointsDisplay.textContent = data.points;
+            } else {
+                pointsDisplay.textContent = '로그인 필요';
+                console.warn('포인트 로드 실패. 로그인 상태 확인.');
+            }
+        } catch (error) {
+            pointsDisplay.textContent = '오류';
+            console.error('포인트 로드 중 네트워크 오류:', error);
+        }
     }
-  </script>
+
+
+    // 서버에서 현재 사용자의 사진 목록을 불러오는 함수
+    async function loadUserPhotos() {
+        const gallery = document.getElementById('userGallery');
+        gallery.innerHTML = ''; // 갤러리 비우기
+
+        try {
+            const response = await fetch('/api/photos/me'); // 서버 API 호출!
+
+            if (!response.ok) {
+                // 로그인되지 않았거나 오류 발생 시
+                const errorData = await response.json();
+                gallery.innerHTML = `<p style="grid-column: 1 / -1; text-align: center; font-size: 20px; color: #cc5555;">${errorData.error || '사진 로드 실패'}</p>`;
+                return;
+            }
+
+            const photos = await response.json(); // 사진 데이터 배열을 받음
+            
+            if (photos.length === 0) {
+                gallery.innerHTML = '<p style="grid-column: 1 / -1; text-align: center; font-size: 20px; color: #555;">아직 등록된 사진이 없습니다. 사진을 업로드해보세요!</p>';
+                return;
+            }
+
+            photos.forEach(photo => {
+                const itemDiv = document.createElement('div');
+                itemDiv.className = 'image-item';
+                
+                const img = document.createElement('img');
+                img.src = photo.imageUrl; // DB에서 받은 이미지 URL 사용
+                img.alt = photo.memo || '사용자 사진';
+
+                // 사진 클릭 시 꾸미기 페이지로 photo_id와 함께 이동
+                itemDiv.addEventListener('click', () => {
+                    window.location.href = `decorate.html?photo_id=${photo.id}`;
+                });
+                
+                itemDiv.appendChild(img);
+                gallery.appendChild(itemDiv);
+            });
+
+        } catch (error) {
+            console.error('사진 로드 오류:', error);
+            gallery.innerHTML = '<p style="grid-column: 1 / -1; text-align: center; font-size: 20px; color: #cc5555;">사진 로드 중 네트워크 오류가 발생했습니다.</p>';
+        }
+    }
+
+
+    // 로그아웃 버튼 클릭 시 동작 (서버 API 호출 추가)
+    async function handleLogout() {
+        try {
+            const response = await fetch('/logout', { method: 'POST' });
+            if (response.ok) {
+                alert('로그아웃 되었습니다.');
+                window.location.href = 'index.html';
+            } else {
+                alert('로그아웃에 실패했습니다.');
+            }
+        } catch (error) {
+            console.error('로그아웃 요청 오류:', error);
+            alert('로그아웃 중 네트워크 오류가 발생했습니다.');
+        }
+    }
+</script>
 </body>
 </html>

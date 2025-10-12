@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Pic! - 사진 꾸미기</title>
+    <style>
+        @font-face {
+            font-family: 'Ownglyph_ParkDaHyun';
+            src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/2411-3@1.0/Ownglyph_ParkDaHyun.woff2') format('woff2');
+            font-weight: normal;
+            font-display: swap;
+        }
+
+        * {
+            font-family: 'Ownglyph_ParkDaHyun', sans-serif;
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: linear-gradient(180deg, #c8f5d4 0%, #a8d8ea 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .header {
+            width: 100%;
+            max-width: 900px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .title {
+            font-size: 5.5rem;
+            font-weight: bold;
+            color: #4a9b8e;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            flex-grow: 1;
+            text-align: center;
+        }
+
+        .back-btn {
+            background: #4a9b8e;
+            border: none;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            cursor: pointer;
+            color: white;
+            font-size: 30px;
+            line-height: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .back-btn::after {
+            content: '←';
+            font-weight: bold;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 900px;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 20px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        #photoDisplay {
+            width: 100%;
+            max-width: 600px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        #currentImage {
+            max-width: 100%;
+            height: auto;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        #photoInfo {
+            font-size: 1.8rem;
+            color: #555;
+            margin-top: 10px;
+        }
+        
+        .controls {
+            width: 100%;
+            max-width: 600px;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 15px;
+        }
+
+        .effect-btn {
+            background-color: #f0f0f0;
+            color: #4a9b8e;
+            padding: 10px 20px;
+            border: 2px solid #4a9b8e;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 2.0rem;
+            transition: all 0.2s;
+        }
+
+        .effect-btn:hover {
+            background-color: #4a9b8e;
+            color: white;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="header">
+        <button class="back-btn" onclick="moveMain()"></button>
+        <h1 class="title">My Pic!</h1>
+    </div>
+
+    <div class="container">
+        <h2>🖼️ 내 사진 꾸미기</h2>
+        <p id="loadingStatus" style="font-size: 2rem; color: #4a9b8e;">사진을 불러오는 중...</p>
+
+        <div id="photoDisplay" style="display:none;">
+            <img id="currentImage" src="" alt="꾸미는 사진">
+            <p id="photoInfo"></p>
+        </div>
+
+        <div id="controls" class="controls" style="display:none;">
+            <button class="effect-btn" data-effect="">원본</button>
+            <button class="effect-btn" data-effect="e_sepia">세피아</button>
+            <button class="effect-btn" data-effect="e_grayscale">흑백</button>
+            <button class="effect-btn" data-effect="e_saturation:50">채도 낮춤</button>
+            <button class="effect-btn" data-effect="e_cartoonify">카툰</button>
+            <button class="effect-btn" data-effect="e_art:peacock">공작새 효과</button>
+            </div>
+    </div>
+
+    <script>
+        const currentImage = document.getElementById('currentImage');
+        const photoInfo = document.getElementById('photoInfo');
+        const loadingStatus = document.getElementById('loadingStatus');
+        const photoDisplay = document.getElementById('photoDisplay');
+        const controls = document.getElementById('controls');
+        let originalImageUrl = ''; // 원본 URL을 저장할 변수
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const params = new URLSearchParams(window.location.search);
+            const photoId = params.get('photo_id'); // URL에서 photo_id 추출
+
+            if (photoId) {
+                fetchPhotoDetails(photoId);
+            } else {
+                loadingStatus.textContent = "❌ 오류: 사진 ID가 없습니다.";
+                alert("사진 ID가 없어 메인 페이지로 이동합니다.");
+                moveMain();
+            }
+        });
+
+        // ------------------
+        // 1. 서버에서 사진 정보 불러오기
+        // ------------------
+        async function fetchPhotoDetails(photoId) {
+            try {
+                const response = await fetch(`/api/photos/${photoId}`);
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || '사진 정보를 불러오지 못했습니다.');
+                }
+                
+                const photo = await response.json();
+                
+                originalImageUrl = photo.imageUrl; // 원본 URL 저장
+                currentImage.src = originalImageUrl; // 이미지 표시
+                photoInfo.textContent = `메모: ${photo.memo || '없음'} | 등록일: ${new Date(photo.created_at).toLocaleDateString()}`;
+
+                loadingStatus.style.display = 'none';
+                photoDisplay.style.display = 'block';
+                controls.style.display = 'flex';
+
+            } catch (error) {
+                loadingStatus.textContent = `❌ 오류: ${error.message}`;
+                console.error('사진 정보 로드 오류:', error);
+            }
+        }
+
+        // ------------------
+        // 2. 클라우디너리 효과 적용
+        // ------------------
+        controls.addEventListener('click', (e) => {
+            if (e.target.classList.contains('effect-btn')) {
+                const effect = e.target.dataset.effect;
+                
+                if (!originalImageUrl) return;
+
+                let transformedUrl;
+
+                if (effect === '') {
+                    // '원본' 버튼: 변형 없이 원본 URL 사용
+                    transformedUrl = originalImageUrl;
+                } else {
+                    // 클라우디너리 URL 변형 규칙 적용
+                    // 예: http://res.cloudinary.com/cloud/image/upload/v1600000000/mypic_uploads/image_abc.jpg
+                    
+                    // 'upload/' 뒤에 변형 코드를 삽입해야 합니다. (e.g., upload/e_sepia/)
+                    const uploadIndex = originalImageUrl.indexOf('/upload/');
+                    if (uploadIndex === -1) {
+                         console.error("클라우디너리 URL 형식이 아닙니다.");
+                         return;
+                    }
+                    
+                    // 변형이 삽입될 위치: '/upload/' + 변형코드 + '/'
+                    const baseUrl = originalImageUrl.substring(0, uploadIndex + 8);
+                    const path = originalImageUrl.substring(uploadIndex + 8);
+
+                    transformedUrl = `${baseUrl}${effect}/${path}`;
+                }
+
+                currentImage.src = transformedUrl; // 변형된 URL로 이미지 업데이트
+                console.log('적용된 URL:', transformedUrl);
+            }
+        });
+
+        // ------------------
+        // 3. 페이지 이동 함수
+        // ------------------
+        function moveMain() {
+            // 메인(갤러리) 페이지로 이동합니다.
+            location.href = "./testtest.html";
+        }
+    </script>
+</body>
+</html>

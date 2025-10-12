@@ -2,116 +2,379 @@
 <html lang="ko">
 
 <head>
-  <meta charset="UTF-8" />
-  <title>Cloudinary 이미지 업로드</title>
-  <style>
-    body {
-      font-family: 'Segoe UI', sans-serif;
-      background-color: #eee;
-      padding: 50px;
-      text-align: center;
-    }
-    h1 {
-      color: #222;
-    }
-    form {
-      background-color: white;
-      padding: 20px;
-      border-radius: 10px;
-      display: inline-block;
-      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-    }
-    button {
-      background-color: #4CAF50;
-      color: white;
-      padding: 10px 20px;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-      font-size: 16px;
-    }
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Pic! - 사진 업로드</title>
+    <style>
+        @font-face {
+            font-family: 'Ownglyph_ParkDaHyun';
+            src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/2411-3@1.0/Ownglyph_ParkDaHyun.woff2') format('woff2');
+            font-weight: normal;
+            font-display: swap;
+        }
 
-    #result {
-      margin-top: 20px;
-    }
-    img {
-      max-width: 300px;
-      margin-top: 10px;
-    }
-  </style>
+        * {
+            font-family: 'Ownglyph_ParkDaHyun', sans-serif;
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: linear-gradient(180deg, #c8f5d4 0%, #a8d8ea 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .header {
+            width: 100%;
+            max-width: 800px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            margin-bottom: 20px;
+        }
+
+        .title {
+            font-size: 5.5rem;
+            font-weight: bold;
+            color: #4a9b8e;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .back-btn {
+            position: absolute;
+            right: 0;
+            background: #4a9b8e;
+            border: none;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            transition: background 0.2s;
+        }
+
+        .back-btn:hover {
+            background: #3b8379;
+        }
+
+        .back-btn::after {
+            content: '→';
+            color: white;
+            font-size: 30px;
+            font-weight: bold;
+            transform: rotate(180deg);
+            line-height: 1;
+        }
+
+
+        .container {
+            width: 100%;
+            max-width: 800px;
+            /* 높이 조정 */
+            min-height: 60vh;
+            background: rgba(255, 255, 255, 0.7);
+            border-radius: 20px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 40px;
+            text-align: center;
+        }
+
+        /* 파일 선택 단계 스타일 */
+        #selectStep {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            height: 100%;
+        }
+
+        .info-text {
+            font-size: 2.2rem;
+            color: #555;
+            margin-bottom: 30px;
+        }
+
+        #fileInput {
+            display: none;
+        }
+
+        .upload-label {
+            background: #4a9b8e;
+            color: white;
+            padding: 15px 40px;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            font-size: 2.5rem;
+            font-weight: 500;
+            transition: background 0.2s;
+            min-width: 200px;
+        }
+
+        .upload-label:hover {
+            background: #3b8379;
+        }
+
+        /* 미리보기 및 메모 작성 단계 스타일 (시안 디자인 적용) */
+        #detailStep {
+            display: none; /* 초기에는 숨김 */
+            width: 100%;
+            height: 100%;
+            padding: 20px;
+            position: relative;
+        }
+
+        .preview-content {
+            display: flex;
+            align-items: flex-start;
+            gap: 20px;
+            padding-top: 20px;
+        }
+
+        .back-to-select {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: black;
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            cursor: pointer;
+            color: white;
+            font-size: 25px;
+            line-height: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 10;
+        }
+
+        .preview-image-box {
+            flex-shrink: 0;
+            width: 50%; /* 시안처럼 왼쪽 영역 */
+            max-width: 350px;
+            position: relative;
+        }
+
+        #imagePreview {
+            width: 100%;
+            height: auto;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .memo-area {
+            flex-grow: 1;
+            text-align: left;
+            padding-left: 20px;
+        }
+
+        .memo-area h2 {
+            font-size: 2.5rem;
+            color: #4a9b8e;
+            margin-bottom: 10px;
+        }
+
+        #memoInput {
+            width: 100%;
+            height: 150px;
+            padding: 15px;
+            border: 1px solid #ccc;
+            border-radius: 10px;
+            font-size: 1.8rem;
+            resize: none;
+            box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.05);
+        }
+
+        #uploadFinalBtn {
+            background: #4a9b8e;
+            color: white;
+            padding: 10px 30px;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            font-size: 2.5rem;
+            font-weight: 500;
+            margin-top: 20px;
+            float: right; /* 오른쪽 아래에 배치 */
+            transition: background 0.2s;
+        }
+
+        #uploadFinalBtn:hover {
+            background: #3b8379;
+        }
+
+        /* 업로드 결과 메시지 */
+        #result {
+            margin-top: 30px;
+            font-size: 1.8rem;
+            grid-column: 1 / -1;
+        }
+
+        #moveBtn {
+            display: none;
+        }
+    </style>
 </head>
 
 <body>
 
-  <h1>📤 이미지 업로드</h1>
+    <div class="header">
+        <h1 class="title">My Pic!</h1>
+        <button class="back-btn" onclick="moveMain()"></button>
+    </div>
 
-  <!-- 📎 이미지 업로드 폼 -->
-  <form id="uploadForm" enctype="multipart/form-data">
-    <input type="file" name="file" accept="image/*" required />
-    <br /><br />
-    <button type="submit">업로드</button>
-  </form>
 
-  <!-- 🖼️ 업로드 결과를 보여줄 영역 -->
-  <div id="result"></div>
+    <div class="container">
+        <div id="selectStep">
+            <p class="info-text">파일에서 이미지를 선택해 사진을 업로드 하세요!</p>
 
-  <!-- 🔁 페이지 이동 버튼 -->
-  <button onclick="move()">이동</button>
+            <form id="selectForm" enctype="multipart/form-data">
+                <input type="file" name="file" accept="image/*" required id="fileInput" />
+                <label for="fileInput" class="upload-label">사진 선택</label>
+            </form>
+            <div id="result"></div>
+        </div>
 
-  <script>
-    const form = document.getElementById("uploadForm");
-    const resultDiv = document.getElementById("result");
 
-    // 🧠 업로드 폼 전송 시 실행되는 이벤트
-    form.addEventListener("submit", async (e) => {
-      e.preventDefault(); // 기본 폼 제출 막기
-      const formData = new FormData(form); // 폼 데이터 생성
+        <div id="detailStep">
+            <button class="back-to-select" onclick="resetForm()">&#x2190;</button>
 
-      try {
-        // 🔄 서버로 이미지 전송 (POST /upload)
-        const res = await fetch("/upload", {
-          method: "POST",
-          body: formData,
+            <div class="preview-content">
+                <div class="preview-image-box">
+                    <img id="imagePreview" src="" alt="선택된 이미지 미리보기" />
+                </div>
+
+                <div class="memo-area">
+                    <h2>메모를 작성하세요(선택)</h2>
+                    <textarea id="memoInput" rows="5" placeholder="예: 오늘 기분이 좋았어요!"></textarea>
+                    
+                    <button id="uploadFinalBtn">업로드 하기</button>
+                </div>
+            </div>
+            <div id="uploadResult"></div>
+        </div>
+
+    </div>
+
+    <script>
+        const selectStep = document.getElementById("selectStep");
+        const detailStep = document.getElementById("detailStep");
+        const fileInput = document.getElementById("fileInput");
+        const imagePreview = document.getElementById("imagePreview");
+        const memoInput = document.getElementById("memoInput");
+        const uploadFinalBtn = document.getElementById("uploadFinalBtn");
+        const uploadResultDiv = document.getElementById("uploadResult");
+        const resultDiv = document.getElementById("result"); // 1단계 결과 표시용
+
+        // ------------------
+        // 1. 파일 선택 이벤트
+        // ------------------
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                const file = e.target.files[0];
+                const reader = new FileReader();
+
+                reader.onload = function(e) {
+                    imagePreview.src = e.target.result; // 미리보기 이미지 설정
+                    showDetailStep();
+                };
+                reader.readAsDataURL(file); // 파일을 DataURL로 읽기 시작
+            }
         });
 
-        // 📦 서버 응답이 JSON인지 확인
-        const contentType = res.headers.get("content-type");
-        if (!contentType || !contentType.includes("application/json")) {
-          const text = await res.text(); // 오류 메시지 받기
-          throw new Error("JSON 아님: " + text);
+        // ------------------
+        // 2. 단계 전환 함수
+        // ------------------
+        function showDetailStep() {
+            selectStep.style.display = 'none';
+            detailStep.style.display = 'block';
+            resultDiv.innerHTML = ''; // 1단계 오류 메시지 지우기
         }
 
-        const json = await res.json();
-
-        // ✅ 업로드 성공한 경우 이미지 보여주기
-        if (json.url) {
-          resultDiv.innerHTML = `
-            <p><strong>✅ 업로드 성공!</strong></p>
-            <a href="${json.url}" target="_blank">${json.url}</a>
-            <br/>
-            <img src="${json.url}" alt="업로드된 이미지" />
-          `;
-
-          // 🔍 파일명에서 public_id 뽑기
-          const filename = json.url.substring(json.url.lastIndexOf("/") + 1);
-          const id = filename.split(".")[0]; // 확장자 제거
-          console.log(id); // 👉 여기서 cloudinary 이미지 ID를 사용할 수 있음
-
-        } else {
-          // ❌ 실패했을 때
-          resultDiv.innerHTML = `<p style="color:red;">❌ 실패: ${JSON.stringify(json)}</p>`;
+        function showSelectStep() {
+            selectStep.style.display = 'flex';
+            detailStep.style.display = 'none';
+            uploadResultDiv.innerHTML = ''; // 2단계 결과 메시지 지우기
         }
-      } catch (err) {
-        // 🧨 fetch 오류 등
-        resultDiv.innerHTML = `<p style="color:red;">❌ 오류 발생: ${err.message}</p>`;
-      }
-    });
 
-    // 📍 이동 버튼 클릭 시 페이지 이동
-    function move() {
-      location.href = "./testtest.html";
-    }
-  </script>
+        function resetForm() {
+            fileInput.value = ''; // 파일 input 초기화
+            memoInput.value = ''; // 메모 input 초기화
+            showSelectStep();
+        }
+        
+        // ------------------
+        // 3. 최종 업로드 버튼 클릭 이벤트 (서버 전송)
+        // ------------------
+        uploadFinalBtn.addEventListener('click', async () => {
+            const file = fileInput.files[0];
+            if (!file) {
+                alert("업로드할 파일을 찾을 수 없습니다.");
+                resetForm();
+                return;
+            }
+
+            // 로딩 메시지 표시 및 버튼 비활성화
+            uploadResultDiv.innerHTML = '<p style="color: #4a9b8e;">업로드 중... 잠시만 기다려주세요.</p>';
+            uploadFinalBtn.disabled = true;
+
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('memo', memoInput.value); // 최종 메모 추가
+
+            try {
+                // 🔄 서버로 이미지 전송 (POST /upload)
+                const res = await fetch("/upload", {
+                    method: "POST",
+                    body: formData,
+                });
+
+                const json = await res.json();
+
+                if (res.ok && json.url) {
+                    uploadResultDiv.innerHTML = `
+                        <p style="color: green; font-weight: bold;">🎉 업로드 성공! 포인트 20점 적립!</p>
+                    `;
+                    // 3초 후 메인 페이지로 자동 이동
+                    setTimeout(() => {
+                        moveMain();
+                    }, 3000);
+                } else {
+                    // ❌ 서버에서 오류 응답이 온 경우
+                    const errorMessage = json.error || '알 수 없는 오류';
+                    uploadResultDiv.innerHTML = `<p style="color:red;">❌ 업로드 실패: ${errorMessage}</p>`;
+                }
+            } catch (err) {
+                uploadResultDiv.innerHTML = `<p style="color:red;">❌ 네트워크 오류 발생: ${err.message}</p>`;
+            } finally {
+                uploadFinalBtn.disabled = false; // 버튼 다시 활성화
+            }
+        });
+
+
+        // 📍 메인 페이지(갤러리)로 이동
+        function moveMain() {
+            // ⚠️ 메인 페이지가 'testtest.html'이라고 가정하고 이동합니다.
+            location.href = "./testtest.html";
+        }
+    </script>
 
 </body>
 
