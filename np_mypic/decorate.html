@@ -1,10 +1,13 @@
 <!DOCTYPE html>
 <html lang="ko">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Pic! - 사진 꾸미기</title>
-    <style>
+    <title>My Pic! - 꾸미기 (실전 서버 연동 버전)</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+     <style>
+        /* CSS 영역: 이전과 동일 */
         @font-face {
             font-family: 'Ownglyph_ParkDaHyun';
             src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/2411-3@1.0/Ownglyph_ParkDaHyun.woff2') format('woff2');
@@ -13,235 +16,787 @@
         }
 
         * {
-            font-family: 'Ownglyph_ParkDaHyun', sans-serif;
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
 
         body {
-            background: linear-gradient(180deg, #c8f5d4 0%, #a8d8ea 100%);
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding: 20px;
+            font-family: 'Ownglyph_ParkDaHyun', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            height: 100vh;
+            background: linear-gradient(135deg, #c8f0d0 0%, #b8e6d2 50%, #a8dce4 100%);
+            overflow: hidden;
         }
 
         .header {
-            width: 100%;
-            max-width: 900px;
+            background: linear-gradient(135deg, #c8f0d0 0%, #a8dce4 100%);
+            padding: 20px;
             display: flex;
-            justify-content: space-between;
             align-items: center;
-            margin-bottom: 20px;
+            justify-content: space-between;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.3);
         }
 
         .title {
-            font-size: 5.5rem;
+            font-size: 2.2rem;
             font-weight: bold;
-            color: #4a9b8e;
-            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-            flex-grow: 1;
+            color: #4a90a4;
+            text-shadow: 0 2px 4px rgba(74, 144, 164, 0.1);
+            flex: 1;
             text-align: center;
         }
 
-        .back-btn {
-            background: #4a9b8e;
-            border: none;
+        .info-icon {
+            width: 35px;
+            height: 35px;
+            background: #4a90a4;
             border-radius: 50%;
-            width: 50px;
-            height: 50px;
-            cursor: pointer;
-            color: white;
-            font-size: 30px;
-            line-height: 1;
             display: flex;
-            justify-content: center;
             align-items: center;
-        }
-        .back-btn::after {
-            content: '←';
+            justify-content: center;
+            color: white;
             font-weight: bold;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
         }
 
-        .container {
-            width: 100%;
-            max-width: 900px;
-            background: rgba(255, 255, 255, 0.9);
-            border-radius: 20px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-            padding: 30px;
+        .info-icon:hover {
+            background: #3a7a8a;
+            transform: scale(1.05);
+        }
+
+        .main-container {
+            background: linear-gradient(135deg, #f8fffe 0%, #f0f8ff 100%);
+            height: calc(100vh - 80px);
+            position: relative;
+            padding: 20px;
+        }
+
+        .back-button {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            width: 40px;
+            height: 40px;
+            background: #333;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: none;
+            font-size: 1.2rem;
+        }
+
+        .back-button:hover {
+            background: #222;
+            transform: scale(1.05);
+        }
+
+        .points {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            color: #666;
+            font-size: 1.2rem;
+        }
+
+        .content-area {
+            display: flex;
+            height: calc(100% - 80px);
+            gap: 30px;
+            margin-top: 60px;
+        }
+
+        .image-section {
+            flex: 1;
             display: flex;
             flex-direction: column;
             align-items: center;
         }
 
-        #photoDisplay {
-            width: 100%;
-            max-width: 600px;
-            margin-bottom: 30px;
-            text-align: center;
+        .image-title {
+            font-size: 1.5rem;
+            color: #333;
+            margin-bottom: 20px;
+            font-weight: 600;
         }
 
-        #currentImage {
-            max-width: 100%;
-            height: auto;
-            border-radius: 10px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-        }
-
-        #photoInfo {
-            font-size: 1.8rem;
-            color: #555;
-            margin-top: 10px;
-        }
-        
-        .controls {
-            width: 100%;
-            max-width: 600px;
+        .image-container {
+            width: 280px;
+            height: 280px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            background: white;
             display: flex;
-            flex-wrap: wrap;
+            align-items: center;
             justify-content: center;
-            gap: 15px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            position: relative;
         }
 
-        .effect-btn {
-            background-color: #f0f0f0;
-            color: #4a9b8e;
-            padding: 10px 20px;
-            border: 2px solid #4a9b8e;
-            border-radius: 25px;
+        .image-container img {
+            max-width: 100%;
+            max-height: 100%;
+            border-radius: 8px;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            z-index: 1;
+        }
+
+        .decoration-section {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .stickers-container {
+            width: 280px;
+            height: 200px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            background: white;
+            padding: 15px;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            grid-template-rows: repeat(2, 1fr);
+            gap: 10px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .sticker {
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             cursor: pointer;
-            font-size: 2.0rem;
-            transition: all 0.2s;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            font-size: 2rem;
+            border: 2px solid transparent;
         }
 
-        .effect-btn:hover {
-            background-color: #4a9b8e;
+        .sticker:hover {
+            background: #f0f8ff;
+            border-color: #4a90a4;
+            transform: scale(1.1);
+        }
+
+        .sticker.selected {
+            background: #e6f3ff;
+            border-color: #2d5a3d;
+            transform: scale(1.05);
+        }
+
+        .price-info {
+            text-align: center;
+            color: #666;
+            font-size: 1.1rem;
+            margin: 10px 0;
+        }
+
+        .placed-sticker {
+            position: absolute;
+            font-size: 1.5rem;
+            cursor: move;
+            z-index: 10;
+            user-select: none;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            line-height: 1;
+        }
+
+        .placed-sticker.resizing {
+            outline: 2px dashed #4a90a4;
+            outline-offset: 5px;
+        }
+
+        .resize-handle {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background: #4a90a4;
+            border: 2px solid white;
+            border-radius: 50%;
+            cursor: nwse-resize;
+            z-index: 11;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+            display: none;
+        }
+
+        .resize-handle:hover {
+            background: #3a7a8a;
+            transform: scale(1.2);
+        }
+
+        .upload-btn {
+            background: #2d5a3d;
             color: white;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            border: none;
+            padding: 12px 30px;
+            border-radius: 25px;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(45, 90, 61, 0.3);
+            width: 280px;
+        }
+
+        .upload-btn:hover:not(:disabled) {
+            background: #234a31;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(45, 90, 61, 0.4);
+        }
+
+        .upload-btn:disabled {
+            cursor: not-allowed;
+            opacity: 0.5;
+        }
+
+        /* 반응형 */
+        @media (max-width: 768px) {
+            .content-area {
+                flex-direction: column;
+                gap: 20px;
+            }
+
+            .image-container,
+            .stickers-container {
+                width: 100%;
+                max-width: 300px;
+                margin: 0 auto;
+            }
+
+            .upload-btn {
+                width: 100%;
+                max-width: 300px;
+            }
         }
     </style>
 </head>
 
 <body>
-    <div class="header">
-        <button class="back-btn" onclick="moveMain()"></button>
-        <h1 class="title">My Pic!</h1>
-    </div>
+        <div class="header">
+                <div style="width: 35px;"></div>
+                <h1 class="title">My Pic!</h1>
+                <div class="info-icon" onclick="showInfo()">ⓘ</div>
+            </div>
+       
+        <div class="main-container">
+                <button class="back-button" onclick="goBack()">←</button>
+                <div class="points">포인트 : 로딩 중</div>
+               
+                <div class="content-area">
+                        <div class="image-section">
+                                <div class="image-title" id="imageTitle">사진 로딩 중...</div>
+                                <div class="image-container" id="imageContainer">
+                                        <p style="color:#999;">서버에서 사진을 로드하는 중입니다.</p>
+                                    </div>
+                            </div>
 
-    <div class="container">
-        <h2>🖼️ 내 사진 꾸미기</h2>
-        <p id="loadingStatus" style="font-size: 2rem; color: #4a9b8e;">사진을 불러오는 중...</p>
+                        <div class="decoration-section">
+                                <div class="stickers-container">
+                                        <div class="sticker" data-sticker="🎀" onclick="selectSticker(this)">🎀</div>
+                                        <div class="sticker" data-sticker="👍" onclick="selectSticker(this)">👍</div>
+                                        <div class="sticker" data-sticker="💖" onclick="selectSticker(this)">💖</div>
+                                        <div class="sticker" data-sticker="🌸" onclick="selectSticker(this)">🌸</div>
+                                        <div class="sticker" data-sticker="💯" onclick="selectSticker(this)">💯</div>
+                                        <div class="sticker" data-sticker="⭐" onclick="selectSticker(this)">⭐</div>
+                                        <div class="sticker" data-sticker="💩" onclick="selectSticker(this)">💩</div>
+                                        <div class="sticker" data-sticker="🖤" onclick="selectSticker(this)">🖤</div>
+                                    </div>
+                               
+                                <div class="price-info">가격 : 0P</div>
+                               
+                                <button class="upload-btn" onclick="completeDecoration()" disabled>완료</button>
+                            </div>
+                    </div>
+            </div>
 
-        <div id="photoDisplay" style="display:none;">
-            <img id="currentImage" src="" alt="꾸미는 사진">
-            <p id="photoInfo"></p>
-        </div>
-
-        <div id="controls" class="controls" style="display:none;">
-            <button class="effect-btn" data-effect="">원본</button>
-            <button class="effect-btn" data-effect="e_sepia">세피아</button>
-            <button class="effect-btn" data-effect="e_grayscale">흑백</button>
-            <button class="effect-btn" data-effect="e_saturation:50">채도 낮춤</button>
-            <button class="effect-btn" data-effect="e_cartoonify">카툰</button>
-            <button class="effect-btn" data-effect="e_art:peacock">공작새 효과</button>
-            </div>
-    </div>
-
+       
     <script>
-        const currentImage = document.getElementById('currentImage');
-        const photoInfo = document.getElementById('photoInfo');
-        const loadingStatus = document.getElementById('loadingStatus');
-        const photoDisplay = document.getElementById('photoDisplay');
-        const controls = document.getElementById('controls');
-        let originalImageUrl = ''; // 원본 URL을 저장할 변수
+        // =========================================================================
+        // 전역 변수 및 설정
+        // =========================================================================
+        let selectedSticker = null;
+        let currentPoints = 0;
+        let photoId = null;
+        let stickerItems = {
+            "🎀": { id: 1, name: "리본", price: 0 },
+            "👍": { id: 2, name: "좋아요", price: 0 },
+            "💖": { id: 3, name: "하트", price: 0 },
+            "🌸": { id: 4, name: "벚꽃", price: 0 },
+            "💯": { id: 5, name: "백점", price: 0 },
+            "⭐": { id: 6, name: "별", price: 0 },
+            "💩": { id: 7, name: "응가", price: 0 },
+            "🖤": { id: 8, name: "블랙하트", price: 0 },
+        };
+        let usedStickers = {};
+        const IMAGE_CONTAINER_SIZE = 280;
+        const STICKER_INITIAL_SIZE = 1.5;
+        const IMAGE_TITLE_EL = document.getElementById('imageTitle');
 
-        document.addEventListener('DOMContentLoaded', () => {
-            const params = new URLSearchParams(window.location.search);
-            const photoId = params.get('photo_id'); // URL에서 photo_id 추출
+        // 🚨 실제 서버 API 엔드포인트 설정 (이 주소로 서버가 응답해야 합니다!)
+        const API_URL = {
+            PHOTO: '/api/photo', // 💡 서버 코드에 맞게 '/api/photo?photoId=ID' 형식으로 통일
+            USER_DATA: '/api/user/data',
+            DECORATION_COMPLETE: '/api/decorate/complete'
+        };
 
-            if (photoId) {
-                fetchPhotoDetails(photoId);
-            } else {
-                loadingStatus.textContent = "❌ 오류: 사진 ID가 없습니다.";
-                alert("사진 ID가 없어 메인 페이지로 이동합니다.");
-                moveMain();
+        // -------------------------------------------------------------
+        // 서버 통신 실패 시 사용될 더미 데이터 (에러 방지용)
+        // -------------------------------------------------------------
+        const DUMMY_DATA = {
+            points: 150,
+            stickerPrices: [
+                { id: 1, price: 10, emoji: "🎀" }, { id: 2, price: 5, emoji: "👍" },
+                { id: 3, price: 20, emoji: "💖" }, { id: 4, price: 15, emoji: "🌸" },
+                { id: 5, price: 30, emoji: "💯" }, { id: 6, price: 10, emoji: "⭐" },
+                { id: 7, price: 50, emoji: "💩" }, { id: 8, price: 25, emoji: "🖤" }
+            ],
+            // 서버 없이 테스트할 경우의 이미지 URL (Picsum 사용)
+            getDummyImageUrl: (id) => {
+                const picsumId = parseInt(id) % 100 + 100;
+                return `https://picsum.photos/id/${picsumId}/${IMAGE_CONTAINER_SIZE}/${IMAGE_CONTAINER_SIZE}`;
             }
+        };
+
+        // =========================================================================
+        // 1. 초기화 및 데이터 로드 (실제 서버 통신 시도)
+        // =========================================================================
+
+        window.addEventListener('DOMContentLoaded', async () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            photoId = urlParams.get('photoId'); // 💡 main.html에서 photoId로 보내도록 수정했으므로 그대로 유지
+
+            if (!photoId || photoId === 'undefined') {
+                IMAGE_TITLE_EL.textContent = '❌ 오류: photoId가 누락되었습니다. URL에 ?photoId=123 형식으로 입력해주세요.';
+                document.getElementById('imageContainer').innerHTML = '<p style="color:red; text-align:center;">올바른 접근 경로가 아닙니다. 서버와 연동하려면 photoId가 필요합니다.</p>';
+                document.querySelector('.upload-btn').disabled = true;
+                alert('잘못된 접근입니다. 서버 연동을 위해 photoId가 필요합니다.');
+                return;
+            }
+
+            await loadUserData();
+            await loadPhoto(photoId);
+            updateTotalPrice();
+            document.querySelector('.upload-btn').disabled = false;
         });
 
-        // ------------------
-        // 1. 서버에서 사진 정보 불러오기
-        // ------------------
-        async function fetchPhotoDetails(photoId) {
-            try {
-                const response = await fetch(`/api/photos/${photoId}`);
-                if (!response.ok) {
-                    const errorData = await response.json();
-                    throw new Error(errorData.error || '사진 정보를 불러오지 못했습니다.');
-                }
-                
-                const photo = await response.json();
-                
-                originalImageUrl = photo.imageUrl; // 원본 URL 저장
-                currentImage.src = originalImageUrl; // 이미지 표시
-                photoInfo.textContent = `메모: ${photo.memo || '없음'} | 등록일: ${new Date(photo.created_at).toLocaleDateString()}`;
+        /**
+         * @description 서버에서 사진 정보를 불러와 화면에 표시합니다.
+         * @param {string} id 사진 ID
+         */
+        async function loadPhoto(id) {
+            const imageContainer = document.getElementById('imageContainer');
+            imageContainer.innerHTML = '';
+            let imageUrl = '';
 
-                loadingStatus.style.display = 'none';
-                photoDisplay.style.display = 'block';
-                controls.style.display = 'flex';
+            try {
+                // 💡 [실전 서버 로직]: /api/photo 엔드포인트에 photoId를 쿼리 파라미터로 전송
+                const response = await fetch(`${API_URL.PHOTO}?photoId=${id}`);
+
+                if (!response.ok) {
+                    const errorData = await response.json().catch(() => ({ message: '서버 오류 (JSON 형식 아님)' }));
+                    throw new Error(`서버에서 사진 URL을 반환하지 못함. 상태: ${response.status} (${errorData.error || '알 수 없는 오류'})`);
+                }
+
+                const data = await response.json();
+                imageUrl = data.imageUrl; // 서버가 { imageUrl: "..." } 형태로 응답해야 함
 
             } catch (error) {
-                loadingStatus.textContent = `❌ 오류: ${error.message}`;
-                console.error('사진 정보 로드 오류:', error);
+                // ⚠️ 에러 발생 시 더미 이미지 사용 (에러 방지 로직)
+                console.error('⚠️ 서버 통신 실패 (사진 로드):', error.message);
+                imageUrl = DUMMY_DATA.getDummyImageUrl(id);
+                IMAGE_TITLE_EL.textContent = `Photo #${id} (서버 연결 실패. 더미 이미지 사용)`;
             }
+
+            // 이미지 로딩 및 표시 로직
+            IMAGE_TITLE_EL.textContent = `Photo #${id}`;
+            const imgElement = document.createElement('img');
+            imgElement.src = imageUrl;
+            imgElement.alt = '꾸밀 사진';
+
+            imgElement.onload = () => {
+                imageContainer.appendChild(imgElement);
+            };
+            imgElement.onerror = () => {
+                // 더미 이미지도 실패할 경우 최종 에러 처리
+                IMAGE_TITLE_EL.textContent = `Photo Load Failed #${id}`;
+                imageContainer.innerHTML = '<p style="color:red; text-align:center;">이미지를 로드할 수 없습니다. (URL 오류)</p>';
+                document.querySelector('.upload-btn').disabled = true;
+            };
         }
 
-        // ------------------
-        // 2. 클라우디너리 효과 적용
-        // ------------------
-        controls.addEventListener('click', (e) => {
-            if (e.target.classList.contains('effect-btn')) {
-                const effect = e.target.dataset.effect;
-                
-                if (!originalImageUrl) return;
+        /**
+         * @description 서버에서 사용자 포인트 및 스티커 가격을 조회합니다.
+         */
+        async function loadUserData() {
+            let data = null;
 
-                let transformedUrl;
+            try {
+                // 💡 [실전 서버 로직]: 이 API는 server.js에 없으므로 실패할 것입니다.
+                const response = await fetch(API_URL.USER_DATA);
 
-                if (effect === '') {
-                    // '원본' 버튼: 변형 없이 원본 URL 사용
-                    transformedUrl = originalImageUrl;
-                } else {
-                    // 클라우디너리 URL 변형 규칙 적용
-                    // 예: http://res.cloudinary.com/cloud/image/upload/v1600000000/mypic_uploads/image_abc.jpg
-                    
-                    // 'upload/' 뒤에 변형 코드를 삽입해야 합니다. (e.g., upload/e_sepia/)
-                    const uploadIndex = originalImageUrl.indexOf('/upload/');
-                    if (uploadIndex === -1) {
-                         console.error("클라우디너리 URL 형식이 아닙니다.");
-                         return;
-                    }
-                    
-                    // 변형이 삽입될 위치: '/upload/' + 변형코드 + '/'
-                    const baseUrl = originalImageUrl.substring(0, uploadIndex + 8);
-                    const path = originalImageUrl.substring(uploadIndex + 8);
-
-                    transformedUrl = `${baseUrl}${effect}/${path}`;
+                if (!response.ok) {
+                    throw new Error(`사용자 데이터를 불러올 수 없습니다. 상태 코드: ${response.status}`);
                 }
 
-                currentImage.src = transformedUrl; // 변형된 URL로 이미지 업데이트
-                console.log('적용된 URL:', transformedUrl);
+                data = await response.json();
+
+            } catch (error) {
+                // ⚠️ 에러 발생 시 더미 데이터 사용 (에러 방지 로직)
+                console.error('⚠️ 서버 통신 실패 (사용자 데이터 로드):', error.message);
+                // alert('서버 연결 실패! 임시 데이터로 테스트를 진행합니다.'); // 이 알림은 너무 자주 뜰 수 있으므로 주석 처리
+                data = DUMMY_DATA;
             }
+
+            // 데이터 처리 (성공 또는 더미 데이터)
+            currentPoints = data.points;
+
+            data.stickerPrices.forEach(item => {
+                for (const emoji in stickerItems) {
+                    if (stickerItems[emoji].id === item.id) {
+                        stickerItems[emoji].price = item.price;
+                        break;
+                    }
+                }
+            });
+
+            document.querySelector('.points').textContent = `포인트 : ${currentPoints}P`;
+
+            // 업데이트된 가격을 HTML에 반영
+            document.querySelectorAll('.sticker').forEach(stickerEl => {
+                const emoji = stickerEl.getAttribute('data-sticker');
+                if (stickerItems[emoji]) {
+                    stickerEl.setAttribute('data-price', stickerItems[emoji].price);
+                    stickerEl.setAttribute('data-item-id', stickerItems[emoji].id);
+                    stickerEl.title = `${stickerItems[emoji].name} (${stickerItems[emoji].price}P)`;
+                }
+            });
+        }
+
+        // =========================================================================
+        // 2. 스티커 기능 및 포인트 계산 (원래 로직 복구)
+        // =========================================================================
+
+        function updateTotalPrice() {
+            let totalPrice = 0;
+            usedStickers = {};
+
+            document.querySelectorAll('.placed-sticker').forEach(sticker => {
+                const emoji = sticker.textContent.trim();
+                const price = stickerItems[emoji] ? stickerItems[emoji].price : 0;
+
+                usedStickers[emoji] = (usedStickers[emoji] || 0) + 1;
+                totalPrice += price;
+            });
+
+            document.querySelector('.price-info').textContent = `가격 : ${totalPrice}P`;
+
+            const uploadBtn = document.querySelector('.upload-btn');
+            if (totalPrice > currentPoints) {
+                uploadBtn.disabled = true;
+                uploadBtn.textContent = `완료 (포인트 부족: ${totalPrice - currentPoints}P 필요)`;
+            } else if (photoId && photoId !== 'undefined') {
+                uploadBtn.disabled = false;
+                uploadBtn.textContent = '완료';
+            }
+
+            return totalPrice;
+        }
+
+        function showInfo() {
+            alert('스티커를 선택하고 사진을 클릭하여 꾸며보세요!\n\n✨ 사용법:\n- 드래그: 위치 조정\n- 오른쪽 하단 동그라미: 크기 조정\n- 더블클릭: 삭제');
+        }
+
+        function goBack() {
+            if (confirm('꾸미기를 종료하시겠습니까? (저장되지 않은 내용은 사라집니다)')) {
+                window.history.back();
+            }
+        }
+
+        function selectSticker(element) {
+            document.querySelectorAll('.sticker').forEach(s => s.classList.remove('selected'));
+
+            element.classList.add('selected');
+            selectedSticker = element.getAttribute('data-sticker');
+
+            document.querySelectorAll('.resize-handle').forEach(handle => handle.style.display = 'none');
+        }
+
+        // =========================================================================
+        // 3. 꾸미기 완료 및 서버 전송 (원래 로직 복구)
+        // =========================================================================
+
+        async function completeDecoration() {
+            const totalPrice = updateTotalPrice();
+
+            if (totalPrice > currentPoints) {
+                alert(`포인트가 부족합니다! 현재 ${currentPoints}P, 필요한 포인트는 ${totalPrice}P 입니다.`);
+                return;
+            }
+
+            if (!confirm(`${totalPrice} 포인트를 사용하여 꾸미기를 완료하고 서버에 저장하시겠습니까? (서버 연결이 필수입니다!)`)) {
+                return;
+            }
+
+            const uploadBtn = document.querySelector('.upload-btn');
+            uploadBtn.textContent = '저장 중...';
+            uploadBtn.disabled = true;
+
+            try {
+                const imageContainer = document.getElementById('imageContainer');
+
+                // 1. 캡쳐를 위한 핸들 임시 숨김
+                document.querySelectorAll('.resize-handle').forEach(handle => handle.style.display = 'none');
+
+                // 2. 이미지 합성 (html2canvas)
+                const canvas = await html2canvas(imageContainer, {
+                    backgroundColor: '#ffffff',
+                    scale: 2
+                });
+
+                // 3. Base64로 변환 (서버 전송용)
+                const imageData = canvas.toDataURL('image/png');
+
+                // 4. 서버에 전송할 데이터 준비 (사용된 스티커 목록)
+                const decorationsData = [];
+                for (const emoji in usedStickers) {
+                    // 사용된 스티커 정보 (ID, 이모지, 갯수)를 정리
+                    if (stickerItems[emoji]) {
+                        decorationsData.push({
+                            itemId: stickerItems[emoji].id,
+                            emoji: emoji,
+                            count: usedStickers[emoji],
+                        });
+                    }
+                }
+
+                // 💡 [실전 서버 로직] 합성된 이미지 데이터와 꾸미기 정보를 서버에 POST 합니다.
+                // 이 API는 server.js에 없으므로 실패할 가능성이 높습니다.
+                const response = await fetch(API_URL.DECORATION_COMPLETE, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        photoId: photoId,
+                        imageData: imageData, // Base64 인코딩된 최종 이미지
+                        totalPrice: totalPrice,
+                        decorations: decorationsData
+                    })
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json().catch(() => ({ message: '서버 오류 (JSON 형식 아님)' }));
+                    throw new Error(`서버 저장 실패: ${errorData.message || response.statusText}`);
+                }
+
+                const result = await response.json();
+
+                alert(`꾸미기 완료!\n사용 포인트: ${totalPrice}P\n남은 포인트: ${result.remainingPoints}P`);
+
+                // 포인트 및 UI 업데이트
+                currentPoints = result.remainingPoints;
+                document.querySelector('.points').textContent = `포인트 : ${currentPoints}P`;
+
+                // 최종 이미지로 교체 (서버에서 반환된 최종 이미지 경로 사용)
+                imageContainer.innerHTML = '';
+                const imgElement = document.createElement('img');
+                imgElement.src = result.finalImageUrl || imageData;
+                imgElement.alt = '꾸며진 사진';
+                imageContainer.appendChild(imgElement);
+
+                // 완료 후 기능 비활성화
+                uploadBtn.textContent = '저장 완료!';
+                document.querySelector('.price-info').textContent = `최종 사용 포인트 : ${totalPrice}P`;
+
+                // 3초 후 이동
+                setTimeout(() => {
+                    window.history.back();
+                }, 3000);
+
+            } catch (error) {
+                console.error('꾸미기 완료 오류:', error);
+                alert(`저장 중 오류가 발생했습니다. (서버 연결 실패 또는 응답 오류): ${error.message}`);
+
+                // 실패 시 버튼 다시 활성화 및 핸들 표시
+                updateTotalPrice(); // 다시 포인트 체크
+                uploadBtn.textContent = '완료';
+                document.querySelectorAll('.placed-sticker .resize-handle').forEach(handle => {
+                    handle.style.display = 'block';
+                });
+            }
+        }
+
+
+        // =========================================================================
+        // 4. 스티커 위치/크기 조정 로직 (이전과 동일)
+        // =========================================================================
+
+        // 이미지 컨테이너 클릭 시 스티커 추가
+        document.getElementById('imageContainer').addEventListener('click', function (e) {
+
+            if (e.target.closest('.placed-sticker') || e.target.closest('.resize-handle')) {
+                const targetSticker = e.target.closest('.placed-sticker');
+                document.querySelectorAll('.placed-sticker').forEach(s => {
+                    const handle = s.querySelector('.resize-handle');
+                    if (handle && s !== targetSticker) handle.style.display = 'none';
+                });
+                if (targetSticker) {
+                    const handle = targetSticker.querySelector('.resize-handle');
+                    if (handle) handle.style.display = 'block';
+                }
+                return;
+            }
+
+            if (!selectedSticker) {
+                document.querySelectorAll('.resize-handle').forEach(handle => handle.style.display = 'none');
+                alert('먼저 스티커를 선택해주세요!');
+                return;
+            }
+
+            document.querySelectorAll('.resize-handle').forEach(handle => handle.style.display = 'none');
+
+            const rect = this.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+
+            const stickerWrapper = document.createElement('div');
+            stickerWrapper.className = 'placed-sticker';
+            stickerWrapper.textContent = selectedSticker;
+
+            stickerWrapper.style.left = (x - 15) + 'px';
+            stickerWrapper.style.top = (y - 15) + 'px';
+
+            let currentSize = STICKER_INITIAL_SIZE;
+            stickerWrapper.style.fontSize = currentSize + 'rem';
+
+            const resizeHandle = document.createElement('div');
+            resizeHandle.className = 'resize-handle';
+            resizeHandle.style.right = '-10px';
+            resizeHandle.style.bottom = '-10px';
+
+            let isDragging = false;
+            let isResizing = false;
+            let startX, startY, initialLeft, initialTop;
+            let initialSize = currentSize;
+
+            // 스티커 클릭 로직
+            stickerWrapper.addEventListener('mousedown', function (e) {
+                if (e.target === resizeHandle) return;
+
+                e.preventDefault();
+                e.stopPropagation();
+
+                document.querySelectorAll('.placed-sticker').forEach(s => {
+                    const handle = s.querySelector('.resize-handle');
+                    if (handle && s !== stickerWrapper) handle.style.display = 'none';
+                });
+                resizeHandle.style.display = 'block';
+
+                isDragging = true;
+                startX = e.clientX;
+                startY = e.clientY;
+                initialLeft = parseInt(stickerWrapper.style.left);
+                initialTop = parseInt(stickerWrapper.style.top);
+                stickerWrapper.style.cursor = 'grabbing';
+            });
+
+            // 크기 조절 핸들 드래그
+            resizeHandle.addEventListener('mousedown', function (e) {
+                e.preventDefault();
+                e.stopPropagation();
+                isResizing = true;
+                startX = e.clientX;
+                startY = e.clientY;
+
+                initialSize = parseFloat(stickerWrapper.style.fontSize) || STICKER_INITIAL_SIZE;
+                stickerWrapper.classList.add('resizing');
+            });
+
+            document.addEventListener('mousemove', function (e) {
+                if (isDragging) {
+                    const deltaX = e.clientX - startX;
+                    const deltaY = e.clientY - startY;
+                    let newLeft = initialLeft + deltaX;
+                    let newTop = initialTop + deltaY;
+
+                    const stickerSize = 30;
+                    newLeft = Math.max(0 - stickerSize / 2, Math.min(newLeft, IMAGE_CONTAINER_SIZE - stickerSize / 2));
+                    newTop = Math.max(0 - stickerSize / 2, Math.min(newTop, IMAGE_CONTAINER_SIZE - stickerSize / 2));
+
+                    stickerWrapper.style.left = newLeft + 'px';
+                    stickerWrapper.style.top = newTop + 'px';
+
+                } else if (isResizing) {
+                    const rect = stickerWrapper.getBoundingClientRect();
+                    const centerX = rect.left + rect.width / 2;
+                    const centerY = rect.top + rect.height / 2;
+
+                    const initialVectorX = startX - centerX;
+                    const initialVectorY = startY - centerY;
+                    const initialDistance = Math.sqrt(initialVectorX * initialVectorX + initialVectorY * initialVectorY);
+
+                    const currentVectorX = e.clientX - centerX;
+                    const currentVectorY = e.clientY - centerY;
+                    const currentDistance = Math.sqrt(currentVectorX * currentVectorX + currentVectorY * currentVectorY);
+
+                    const scaleFactor = currentDistance / initialDistance;
+
+                    currentSize = initialSize * scaleFactor;
+                    currentSize = Math.max(0.5, Math.min(currentSize, 5));
+
+                    stickerWrapper.style.fontSize = currentSize + 'rem';
+                }
+            });
+
+            document.addEventListener('mouseup', function () {
+                if (isDragging) {
+                    isDragging = false;
+                    stickerWrapper.style.cursor = 'move';
+                } else if (isResizing) {
+                    isResizing = false;
+                    initialSize = parseFloat(stickerWrapper.style.fontSize);
+                    stickerWrapper.classList.remove('resizing');
+                }
+            });
+
+            // 더블클릭으로 삭제
+            stickerWrapper.addEventListener('dblclick', function (e) {
+                e.stopPropagation();
+                if (confirm('이 스티커를 삭제하시겠습니까?')) {
+                    stickerWrapper.remove();
+                    updateTotalPrice();
+                }
+            });
+
+            stickerWrapper.appendChild(resizeHandle);
+            resizeHandle.style.display = 'block';
+
+            this.appendChild(stickerWrapper);
+
+            updateTotalPrice();
+
+            // 스티커 패널 선택 해제
+            document.querySelectorAll('.sticker').forEach(s => s.classList.remove('selected'));
+            selectedSticker = null;
         });
 
-        // ------------------
-        // 3. 페이지 이동 함수
-        // ------------------
-        function moveMain() {
-            // 메인(갤러리) 페이지로 이동합니다.
-            location.href = "./testtest.html";
-        }
     </script>
 </body>
+
 </html>
