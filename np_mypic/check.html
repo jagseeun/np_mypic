@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Pic! - 사진 상세보기</title>
+    <style>
+        @font-face {
+            font-family: 'Ownglyph_ParkDaHyun';
+            src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/2411-3@1.0/Ownglyph_ParkDaHyun.woff2') format('woff2');
+            font-weight: normal;
+            font-display: swap;
+        }
+        * {
+            font-family: 'Ownglyph_ParkDaHyun', sans-serif;
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            background: linear-gradient(180deg, #D1FEE0 5%, #afcded 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .header {
+            max-width: 900px;
+            margin: 0 auto 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+        }
+        .title {
+            font-size: 4rem;
+            font-weight: bold;
+            color: #4a9b8e;
+            text-align: center;
+        }
+        .logout-btn {
+            position: absolute;
+            right: 0;
+            width: 50px;
+            height: 50px;
+            background: #4a9b8e;
+            border-radius: 50%;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+        .logout-btn img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            position: relative;
+        }
+        .back-btn {
+            position: absolute;
+            top: 30px;
+            left: 30px;
+            background: #333;
+            border: none;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            color: white;
+            font-size: 1.8rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .back-btn:hover {
+            background: #222;
+        }
+        .points-display {
+            position: absolute;
+            top: 15px;
+            right: 30px;
+            font-size: 1.8rem;
+            color: #4a9b8e;
+            font-weight: bold;
+        }
+        .content {
+            display: flex;
+            gap: 30px;
+            align-items: flex-start;
+            margin-top: 20px;
+        }
+        .image-section {
+            flex: 1;
+        }
+        .image-title {
+            font-size: 1.8rem;
+            color: #333;
+            margin-bottom: 15px;
+            text-align: center;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 400px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .image-container {
+            width: 100%;
+            max-width: 400px;
+            aspect-ratio: 1;
+            margin: 0 auto;
+            border: 3px solid #ddd;
+            border-radius: 10px;
+            background: white;
+            position: relative;
+            overflow: hidden;
+        }
+        .image-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+        .placed-sticker {
+            position: absolute;
+            font-size: 2rem;
+            user-select: none;
+            z-index: 10;
+            transform-origin: center;
+            pointer-events: none;
+        }
+        .info-section {
+            flex: 0 0 350px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        .info-box {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            border: 2px solid #ddd;
+        }
+        .info-title {
+            font-size: 1.8rem;
+            color: #4a9b8e;
+            margin-bottom: 15px;
+            font-weight: bold;
+        }
+        .info-item {
+            font-size: 1.5rem;
+            color: #333;
+            margin-bottom: 10px;
+            line-height: 1.6;
+            word-break: break-all;
+            max-height: 150px;
+            overflow-y: auto;
+        }
+        .action-btn {
+            width: 100%;
+            background: #4a9b8e;
+            color: white;
+            border: none;
+            padding: 15px;
+            font-size: 2rem;
+            border-radius: 50px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .action-btn:hover {
+            background: #3b8379;
+        }
+        .action-btn.secondary {
+            background: #7cb8ac;
+        }
+        .action-btn.secondary:hover {
+            background: #6aa899;
+        }
+        @media (max-width: 768px) {
+            .content {
+                flex-direction: column;
+            }
+            .info-section {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1 class="title">My Pic!</h1>
+        <button class="logout-btn" onclick="handleLogout()">
+            <img src="logout.png" alt="로그아웃" onerror="this.style.display='none'">
+        </button>
+    </div>
+
+    <div class="container">
+        <button class="back-btn" onclick="goBack()">←</button>
+        <div class="points-display">포인트 : <span id="userPoints">0</span></div>
+
+        <div class="content">
+            <div class="image-section">
+                <div class="image-title" id="imageTitle">로딩 중...</div>
+                <div class="image-container" id="imageContainer">
+                    <p style="text-align:center; padding-top: 50%; color: #999;">로딩 중...</p>
+                </div>
+            </div>
+
+            <div class="info-section">
+                <div class="info-box">
+                    <div class="info-title">사진 정보</div>
+                    <div class="info-item">업로드 날짜 : <span id="uploadDate">-</span></div>
+                    <div class="info-item">메모 : <span id="photoMemo">-</span></div>
+                </div>
+
+                <button class="action-btn" onclick="goToDecorate()">꾸미기</button>
+                <button class="action-btn secondary" onclick="goToMemo()">메모 수정</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let photoId = null;
+        let currentPoints = 0;
+        let stickerItems = {};
+
+        // 페이지 로드 시 초기화
+        window.addEventListener('DOMContentLoaded', async () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            photoId = urlParams.get('photoId');
+
+            if (!photoId) {
+                alert('잘못된 접근입니다.');
+                window.history.back();
+                return;
+            }
+
+            await loadUserPoints();
+            await loadItems();
+            await loadPhotoDetail();
+        });
+
+        // 사용자 포인트 조회
+        async function loadUserPoints() {
+            try {
+                const res = await fetch('/api/user/points');
+                if (res.ok) {
+                    const data = await res.json();
+                    currentPoints = data.points;
+                    document.getElementById('userPoints').textContent = currentPoints;
+                }
+            } catch (err) {
+                console.error('포인트 조회 오류:', err);
+            }
+        }
+
+        // 아이템(스티커) 목록 조회
+        async function loadItems() {
+            try {
+                const res = await fetch('/api/items');
+                if (res.ok) {
+                    const items = await res.json();
+                    items.forEach(item => {
+                        stickerItems[item.id] = item;
+                    });
+                }
+            } catch (err) {
+                console.error('아이템 조회 오류:', err);
+            }
+        }
+
+        // 사진 상세 정보 및 꾸미기 데이터 로드
+        async function loadPhotoDetail() {
+            const container = document.getElementById('imageContainer');
+            
+            try {
+                // 1. 사진 기본 정보 조회
+                const photoRes = await fetch(`/api/photos/${photoId}`);
+                if (!photoRes.ok) throw new Error('사진 조회 실패');
+                
+                const photo = await photoRes.json();
+                
+                // 이미지 표시
+                container.innerHTML = '';
+                const img = document.createElement('img');
+                img.src = photo.imageUrl;
+                img.alt = '내 사진';
+                container.appendChild(img);
+                
+                // 정보 표시
+                const title = photo.memo || '메모 없음';
+                document.getElementById('imageTitle').textContent = title.length > 10 ? title.substring(0, 10) + '...' : title;
+                document.getElementById('photoMemo').textContent = photo.memo || '메모 없음';
+                
+                // 날짜 포맷팅
+                if (photo.created_at) {
+                    const date = new Date(photo.created_at);
+                    const formatted = `${date.getFullYear()}.${date.getMonth() + 1}.${date.getDate()}`;
+                    document.getElementById('uploadDate').textContent = formatted;
+                }
+
+                // 2. 꾸미기 데이터 조회 (decorations 테이블)
+                const decoRes = await fetch(`/api/decorations/${photoId}`);
+                if (decoRes.ok) {
+                    const decorations = await decoRes.json();
+                    
+                    // 스티커 렌더링
+                    decorations.forEach(deco => {
+                        const item = stickerItems[deco.item_id];
+                        if (item) {
+                            const sticker = document.createElement('div');
+                            sticker.className = 'placed-sticker';
+                            sticker.textContent = item.emoji;
+                            sticker.style.left = deco.x + '%';
+                            sticker.style.top = deco.y + '%';
+                            sticker.style.transform = `scale(${deco.scale})`;
+                            container.appendChild(sticker);
+                        }
+                    });
+                }
+
+            } catch (err) {
+                console.error('사진 로드 오류:', err);
+                container.innerHTML = '<p style="color:red; text-align:center; padding-top: 50%;">사진을 불러올 수 없습니다.</p>';
+            }
+        }
+
+        // 꾸미기 페이지로 이동
+        function goToDecorate() {
+            window.location.href = `decorate.html?photoId=${photoId}`;
+        }
+
+        // 메모 수정 페이지로 이동
+        function goToMemo() {
+            window.location.href = `memo.html?photoId=${photoId}`;
+        }
+
+        // 뒤로가기
+        function goBack() {
+            window.location.href = './testtest.html';
+        }
+
+        // 로그아웃
+        async function handleLogout() {
+            try {
+                const res = await fetch('/logout', { method: 'POST' });
+                if (res.ok) {
+                    alert('로그아웃 되었습니다.');
+                    window.location.href = 'index.html';
+                }
+            } catch (err) {
+                console.error('로그아웃 오류:', err);
+            }
+        }
+    </script>
+</body>
+</html>
