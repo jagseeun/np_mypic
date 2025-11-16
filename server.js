@@ -1,249 +1,275 @@
-// 📦 필요한 모듈 불러오기
 const express = require("express");
 const multer = require("multer");
 const dotenv = require("dotenv");
 const streamifier = require("streamifier");
 const { v2: cloudinary } = require("cloudinary");
-const mysql = require("mysql2"); 
-const bcrypt = require('bcrypt'); 
-const path = require('path'); 
+const mysql = require("mysql2"); 
+const bcrypt = require('bcrypt'); 
+const path = require('path'); 
 const session = require('express-session'); 
 const MySQLStore = require('express-mysql-session')(session); 
 
-// 🌱 .env 파일에 있는 환경변수 로드
+// .env 파일에서 환경변수 가져오기
 dotenv.config();
 
-// ☁️ Cloudinary 계정 정보 설정
+// Cloudinary 계정 연결 (이미지 저장소)
 cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-  api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET,
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
-// 🚀 Express 앱 생성
 const app = express();
 
-// 💧 MySQL 데이터베이스 연결 설정
+// MySQL DB 연결 풀 생성
 const db = mysql.createPool({
-  host: '127.0.0.1', 
-  user: 'root',
-  password: '0000',
-  database: 'mypic',
-  port: 3307 
+  host: '127.0.0.1', 
+  user: 'root',
+  password: '0000',
+  database: 'mypic',
+  port: 3307 
 });
 
-// 💧 MySQL 세션 스토어 설정 (세션 정보를 DB에 저장)
+// 세션 데이터를 MySQL에 저장하기 위한 스토어
 const sessionStore = new MySQLStore({}, db.promise());
 
-// ⚙️ 미들웨어 설정
-app.use(express.json()); 
-app.use(express.urlencoded({ extended: true })); 
-app.use(express.static("np_mypic")); 
+// JSON, URL-encoded 데이터 파싱 (요청 본문 읽기용)
+app.use(express.json()); 
+app.use(express.urlencoded({ extended: true })); 
 
-// ⚙️ 세션 미들웨어 설정 (모든 요청 전에 실행)
+// 정적 파일 제공 (HTML, CSS, JS 등)
+app.use(express.static("np_mypic")); 
+
+// 세션 미들웨어 설정 (로그인 상태 유지)
 app.use(session({
-    secret: process.env.SESSION_SECRET || 'super_secret_key_for_mypic', 
-    store: sessionStore, 
-    resave: false,
-    saveUninitialized: false,
-    cookie: {
-        maxAge: 1000 * 60 * 60 * 24 
-    }
+    secret: process.env.SESSION_SECRET || 'super_secret_key_for_mypic', // 세션 암호화 키
+    store: sessionStore, // DB에 세션 저장
+    resave: false, // 변경사항 없으면 저장 안함
+    saveUninitialized: false, // 빈 세션 저장 안함
+    cookie: {
+        maxAge: 1000 * 60 * 60 * 24 // 쿠키 유효기간 24시간
+    }
 }));
 
-
-// 📦 multer 설정: 메모리 저장소에 파일 저장
+// 파일 업로드 설정 (메모리에 임시 저장)
 const upload = multer({ storage: multer.memoryStorage() });
 
-// 📤 버퍼 데이터를 Cloudinary로 업로드하는 함수
+// 메모리 버퍼를 Cloudinary로 업로드하는 함수
 const uploadToCloudinary = (buffer) => {
-  return new Promise((resolve, reject) => {
-    const stream = cloudinary.uploader.upload_stream(
-      { folder: "mypic_uploads" },
-      (error, result) => {
-        if (error) return reject(error);
-        resolve(result);
-      }
-    );
-    streamifier.createReadStream(buffer).pipe(stream);
-  });
+  return new Promise((resolve, reject) => {
+    // 스트림 방식으로 업로드
+    const stream = cloudinary.uploader.upload_stream(
+      { folder: "mypic_uploads" }, // Cloudinary 내 폴더명
+      (error, result) => {
+        if (error) return reject(error);
+        resolve(result); // 업로드 결과 반환 (URL 포함)
+      }
+    );
+    // 버퍼를 읽어서 스트림으로 전송
+    streamifier.createReadStream(buffer).pipe(stream);
+  });
 };
 
-
-// ---
-// 🚀 API 라우트
-
-// 📩 회원가입 API 라우트 (변경 없음)
+// 회원가입
 app.post("/signup", async (req, res) => {
-    const { username, password } = req.body;
-
-    if (!username || !password) {
-        return res.status(400).send("아이디와 비밀번호를 모두 입력해주세요.");
-    }
-
-    try {
-        const [rows] = await db.promise().query("SELECT * FROM users WHERE username = ?", [username]);
-        if (rows.length > 0) {
-            return res.status(409).send("이미 존재하는 아이디입니다.");
-        }
-
-        const hashedPassword = await bcrypt.hash(password, 10);
-        await db.promise().query("INSERT INTO users (username, password) VALUES (?, ?)", [username, hashedPassword]);
-
-        console.log(`회원가입 성공: ${username}`);
-        res.status(201).send("회원가입이 성공적으로 완료되었습니다.");
-
-    } catch (error) {
-        console.error("회원가입 오류:", error);
-        res.status(500).send("회원가입 중 오류가 발생했습니다.");
-    }
+    const { username, password } = req.body;
+    
+    // 빈 값 체크
+    if (!username || !password) {
+        return res.status(400).send("아이디와 비밀번호를 모두 입력해주세요.");
+    }
+    
+    try {
+        // 이미 있는 아이디인지 확인
+        const [rows] = await db.promise().query("SELECT * FROM users WHERE username = ?", [username]);
+        if (rows.length > 0) {
+            return res.status(409).send("이미 존재하는 아이디입니다.");
+        }
+        
+        // 비밀번호 암호화 (bcrypt로 해시화, 10은 salt rounds)
+        const hashedPassword = await bcrypt.hash(password, 10);
+        
+        // DB에 새 사용자 등록 (points는 기본값 0으로 자동 설정됨)
+        await db.promise().query("INSERT INTO users (username, password) VALUES (?, ?)", [username, hashedPassword]);
+        console.log(`회원가입 성공: ${username}`);
+        res.status(201).send("회원가입이 성공적으로 완료되었습니다.");
+    } catch (error) {
+        console.error("회원가입 오류:", error);
+        res.status(500).send("회원가입 중 오류가 발생했습니다.");
+    }
 });
 
-
-// 📩 로그인 API 라우트 
+// 로그인
 app.post("/login", async (req, res) => {
-    const { username, password } = req.body;
-
-    if (!username || !password) {
-        return res.status(400).send("아이디와 비밀번호를 모두 입력해주세요.");
-    }
-
-    try {
-        const [rows] = await db.promise().query("SELECT * FROM users WHERE username = ?", [username]);
-        const user = rows[0];
-
-        if (!user) {
-            return res.status(401).send("아이디 또는 비밀번호가 올바르지 않습니다.");
-        }
-
-        const isPasswordMatch = await bcrypt.compare(password, user.password);
-
-        if (isPasswordMatch) {
-            req.session.userId = user.id; 
-            console.log(`로그인 성공: ${username}, ID: ${user.id}`);
-            res.status(200).send("로그인에 성공했습니다.");
-        } else {
-            res.status(401).send("아이디 또는 비밀번호가 올바르지 않습니다.");
-        }
-
-    } catch (error) {
-        console.error("로그인 오류:", error);
-        res.status(500).send("로그인 중 오류가 발생했습니다.");
-    }
+    const { username, password } = req.body;
+    
+    if (!username || !password) {
+        return res.status(400).send("아이디와 비밀번호를 모두 입력해주세요.");
+    }
+    
+    try {
+        // 사용자 찾기
+        const [rows] = await db.promise().query("SELECT * FROM users WHERE username = ?", [username]);
+        const user = rows[0];
+        
+        if (!user) {
+            return res.status(401).send("아이디 또는 비밀번호가 올바르지 않습니다.");
+        }
+        
+        // 비밀번호 일치 여부 확인 (해시값 비교)
+        const isPasswordMatch = await bcrypt.compare(password, user.password);
+        if (isPasswordMatch) {
+            // 세션에 사용자 ID 저장 (로그인 상태 유지용)
+            req.session.userId = user.id; 
+            console.log(`로그인 성공: ${username}, ID: ${user.id}`);
+            res.status(200).send("로그인에 성공했습니다.");
+        } else {
+            res.status(401).send("아이디 또는 비밀번호가 올바르지 않습니다.");
+        }
+    } catch (error) {
+        console.error("로그인 오류:", error);
+        res.status(500).send("로그인 중 오류가 발생했습니다.");
+    }
 });
 
-
-// 🚪 로그아웃 API 라우트
+// 로그아웃
 app.post("/logout", (req, res) => {
-    req.session.destroy(err => {
-        if (err) {
-            console.error("로그아웃 오류:", err);
-            return res.status(500).send("로그아웃 중 오류가 발생했습니다.");
-        }
-        res.clearCookie('connect.sid'); 
-        res.status(200).send("로그아웃 되었습니다.");
-    });
+    // 세션 완전히 삭제
+    req.session.destroy(err => {
+        if (err) {
+            console.error("로그아웃 오류:", err);
+            return res.status(500).send("로그아웃 중 오류가 발생했습니다.");
+        }
+        res.clearCookie('connect.sid'); // 세션 쿠키도 삭제
+        res.status(200).send("로그아웃 되었습니다.");
+    });
 });
 
-
-// 💰 사용자 포인트 조회 API
+// 현재 사용자 포인트 조회
 app.get("/api/user/points", async (req, res) => {
-    const userId = req.session.userId;
-
-    if (!userId) {
-        return res.status(401).json({ points: 0, error: "로그인이 필요합니다." });
-    }
-
-    try {
-        const [rows] = await db.promise().query(
-            "SELECT points FROM users WHERE id = ?",
-            [userId]
-        );
-        
-        if (rows.length === 0) {
-            return res.status(404).json({ error: "사용자를 찾을 수 없습니다." });
-        }
-
-        res.status(200).json({ points: rows[0].points });
-
-    } catch (error) {
-        console.error("포인트 조회 오류:", error);
-        res.status(500).json({ error: "포인트를 불러오는 중 오류가 발생했습니다." });
-    }
+    const userId = req.session.userId;
+    
+    // 로그인 체크
+    if (!userId) {
+        return res.status(401).json({ points: 0, error: "로그인이 필요합니다." });
+    }
+    
+    try {
+        // 사용자 포인트 가져오기
+        const [rows] = await db.promise().query(
+            "SELECT points FROM users WHERE id = ?",
+            [userId]
+        );
+        
+        if (rows.length === 0) {
+            return res.status(404).json({ error: "사용자를 찾을 수 없습니다." });
+        }
+        
+        res.status(200).json({ points: rows[0].points });
+    } catch (error) {
+        console.error("포인트 조회 오류:", error);
+        res.status(500).json({ error: "포인트를 불러오는 중 오류가 발생했습니다." });
+    }
 });
 
-
-// 🖼️ 로그인된 사용자의 사진 목록을 불러오는 API 라우트 
+// 내가 업로드한 사진 목록
 app.get("/api/photos/me", async (req, res) => {
-    const userId = req.session.userId; 
-
-    if (!userId) {
-        return res.status(401).json({ error: "로그인이 필요합니다." });
-    }
-
-    try {
-        const [photos] = await db.promise().query(
-            "SELECT id, imageUrl, memo, created_at FROM photos WHERE user_id = ? ORDER BY created_at DESC",
-            [userId]
-        );
-        
-        res.status(200).json(photos); 
-
-    } catch (error) {
-        console.error("사진 목록 조회 오류:", error);
-        res.status(500).json({ error: "사진 목록을 불러오는 중 오류가 발생했습니다." });
-    }
+    const userId = req.session.userId; 
+    
+    if (!userId) {
+        return res.status(401).json({ error: "로그인이 필요합니다." });
+    }
+    
+    try {
+        // 최신순으로 내 사진들 가져오기 (created_at DESC)
+        const [photos] = await db.promise().query(
+            "SELECT id, imageUrl, memo, created_at FROM photos WHERE user_id = ? ORDER BY created_at DESC",
+            [userId]
+        );
+        
+        res.status(200).json(photos); 
+    } catch (error) {
+        console.error("사진 목록 조회 오류:", error);
+        res.status(500).json({ error: "사진 목록을 불러오는 중 오류가 발생했습니다." });
+    }
 });
 
+// 💡 메모 검색 API
+app.get("/api/photos/search", async (req, res) => {
+    const userId = req.session.userId;
+    const keyword = req.query.keyword;
+    
+    if (!userId) {
+        return res.status(401).json({ error: "로그인이 필요합니다." });
+    }
+    
+    if (!keyword) {
+        return res.status(400).json({ error: "검색어를 입력해주세요." });
+    }
+    
+    try {
+        // memo 필드에서 키워드를 포함하는 사진 검색 (LIKE 사용)
+        const [photos] = await db.promise().query(
+            "SELECT id, imageUrl, memo, created_at FROM photos WHERE user_id = ? AND memo LIKE ? ORDER BY created_at DESC",
+            [userId, `%${keyword}%`]
+        );
+        
+        res.status(200).json(photos);
+    } catch (error) {
+        console.error("사진 검색 오류:", error);
+        res.status(500).json({ error: "사진 검색 중 오류가 발생했습니다." });
+    }
+});
 
-// 📩 파일 업로드 API 라우트
+// 사진 업로드
 app.post("/upload", upload.single("file"), async (req, res) => {
-    const userId = req.session.userId; 
-    const memo = req.body.memo || null; 
-
-    if (!userId) {
-        return res.status(401).json({ error: "로그인이 필요합니다. 사진을 저장할 수 없습니다." });
-    }
-
-    try {
-        if (!req.file) {
-            return res.status(400).json({ error: "파일이 없습니다." });
-        }
-        
-        // 1. Cloudinary 업로드
-        const result = await uploadToCloudinary(req.file.buffer);
-        const imageUrl = result.secure_url;
-
-        // 2. photos 테이블에 저장
-        const [insertResult] = await db.promise().query(
-            "INSERT INTO photos (user_id, imageUrl, memo) VALUES (?, ?, ?)",
-            [userId, imageUrl, memo]
-        );
-        
-        // 3. users 테이블 포인트 20점 증가
-        await db.promise().query(
-            "UPDATE users SET points = points + 20 WHERE id = ?",
-            [userId]
-        );
-
-        res.status(201).json({ 
-            message: "사진 업로드 및 포인트 적립 성공", 
-            url: imageUrl,
-            photo_id: insertResult.insertId 
-        });
-
-    } catch (err) {
-        console.error("업로드/DB 저장 실패:", err);
-        res.status(500).json({ error: "업로드 및 DB 저장 실패: " + err.message });
-    }
+    const userId = req.session.userId; 
+    const memo = req.body.memo || null; // 메모는 선택사항
+    
+    // 로그인 안되어있으면 업로드 불가
+    if (!userId) {
+        return res.status(401).json({ error: "로그인이 필요합니다. 사진을 저장할 수 없습니다." });
+    }
+    
+    try {
+        // 파일 첨부 여부 확인
+        if (!req.file) {
+            return res.status(400).json({ error: "파일이 없습니다." });
+        }
+        
+        // Cloudinary에 이미지 업로드 (buffer → URL)
+        const result = await uploadToCloudinary(req.file.buffer);
+        const imageUrl = result.secure_url; // HTTPS URL
+        
+        // photos 테이블에 사진 정보 저장
+        const [insertResult] = await db.promise().query(
+            "INSERT INTO photos (user_id, imageUrl, memo) VALUES (?, ?, ?)",
+            [userId, imageUrl, memo]
+        );
+        
+        // 업로드 보상으로 포인트 20점 지급
+        await db.promise().query(
+            "UPDATE users SET points = points + 20 WHERE id = ?",
+            [userId]
+        );
+        
+        res.status(201).json({ 
+            message: "사진 업로드 및 포인트 적립 성공", 
+            url: imageUrl,
+            photo_id: insertResult.insertId // 방금 저장된 사진 ID
+        });
+    } catch (err) {
+        console.error("업로드/DB 저장 실패:", err);
+        res.status(500).json({ error: "업로드 및 DB 저장 실패: " + err.message });
+    }
 });
 
-// 🖼️ 특정 사진 정보 조회 API (decorate.html에서 사용: /api/photo?photoId=ID 형식)
+// 특정 사진 정보 조회 (쿼리 파라미터 사용)
+// 예: /api/photo?photoId=123
 app.get("/api/photo", async (req, res) => {
-    // 💡 쿼리 파라미터(photoId)에서 ID를 가져옴
     const photoId = req.query.photoId; 
     const userId = req.session.userId;
-
+    
     if (!userId) {
         return res.status(401).json({ error: "로그인이 필요합니다." });
     }
@@ -251,8 +277,9 @@ app.get("/api/photo", async (req, res) => {
     if (!photoId) {
         return res.status(400).json({ error: "photoId가 필요합니다." });
     }
-
+    
     try {
+        // 내 사진인지 확인하면서 정보 가져오기 (AND user_id = ?)
         const [rows] = await db.promise().query(
             "SELECT id, imageUrl FROM photos WHERE id = ? AND user_id = ?",
             [photoId, userId]
@@ -262,18 +289,244 @@ app.get("/api/photo", async (req, res) => {
             return res.status(404).json({ error: "사진을 찾을 수 없습니다." });
         }
         
-        // decorate.html의 loadPhoto 함수가 기대하는 형식: { imageUrl: "..." }
         res.status(200).json({ imageUrl: rows[0].imageUrl }); 
-
     } catch (error) {
         console.error("특정 사진 조회 오류:", error);
         res.status(500).json({ error: "사진 정보를 불러오는 중 오류가 발생했습니다." });
     }
 });
 
+// 구매 가능한 아이템(스티커) 목록
+app.get("/api/items", async (req, res) => {
+    try {
+        // items 테이블에서 모든 스티커 정보 가져오기
+        const [rows] = await db.promise().query(
+            "SELECT id, name, emoji, price FROM items"
+        );
+        res.status(200).json(rows);
+    } catch (error) {
+        console.error("아이템 조회 오류:", error);
+        res.status(500).json({ error: "아이템을 불러오는 중 오류가 발생했습니다." });
+    }
+});
 
-// 🟢 서버 실행
+// 특정 사진 상세 정보 (경로 파라미터 사용)
+// 예: /api/photos/123
+app.get("/api/photos/:photoId", async (req, res) => {
+    const userId = req.session.userId;
+    const photoId = req.params.photoId; // URL 경로에서 추출
+    
+    if (!userId) {
+        return res.status(401).json({ error: "로그인이 필요합니다." });
+    }
+    
+    try {
+        // 메모와 업로드 날짜까지 포함해서 조회
+        const [rows] = await db.promise().query(
+            "SELECT id, imageUrl, memo, created_at FROM photos WHERE id = ? AND user_id = ?",
+            [photoId, userId]
+        );
+        
+        if (rows.length === 0) {
+            return res.status(404).json({ error: "사진을 찾을 수 없습니다." });
+        }
+        
+        res.status(200).json(rows[0]);
+    } catch (error) {
+        console.error("사진 조회 오류:", error);
+        res.status(500).json({ error: "사진을 불러오는 중 오류가 발생했습니다." });
+    }
+});
+
+// 특정 사진에 붙인 스티커들 조회
+app.get("/api/decorations/:photoId", async (req, res) => {
+    const userId = req.session.userId;
+    const photoId = req.params.photoId;
+    
+    if (!userId) {
+        return res.status(401).json({ error: "로그인이 필요합니다." });
+    }
+    
+    try {
+        // 내 사진인지 먼저 확인 (보안)
+        const [photoCheck] = await db.promise().query(
+            "SELECT id FROM photos WHERE id = ? AND user_id = ?",
+            [photoId, userId]
+        );
+        
+        if (photoCheck.length === 0) {
+            return res.status(404).json({ error: "사진을 찾을 수 없습니다." });
+        }
+        
+        // 해당 사진에 붙어있는 스티커 정보들 (위치, 크기, 회전값 포함)
+        const [decorations] = await db.promise().query(
+            "SELECT item_id, x, y, scale, rotation FROM decorations WHERE photo_id = ?",
+            [photoId]
+        );
+        
+        res.status(200).json(decorations);
+    } catch (error) {
+        console.error("꾸미기 데이터 조회 오류:", error);
+        res.status(500).json({ error: "꾸미기 데이터를 불러오는 중 오류가 발생했습니다." });
+    }
+});
+
+// 사진 꾸미기 (새 스티커 추가)
+app.post("/api/decorate/add", async (req, res) => {
+    const userId = req.session.userId;
+    const { photoId, totalPrice, decorations } = req.body;
+    
+    if (!userId) {
+        return res.status(401).json({ error: "로그인이 필요합니다." });
+    }
+    
+    console.log('꾸미기 추가 요청:', { photoId, totalPrice, decorationsCount: decorations?.length });
+    
+    try {
+        // 내 포인트 확인
+        const [userRows] = await db.promise().query(
+            "SELECT points FROM users WHERE id = ?",
+            [userId]
+        );
+        
+        // 포인트 부족하면 거절
+        if (userRows[0].points < totalPrice) {
+            return res.status(400).json({ error: "포인트가 부족합니다." });
+        }
+        
+        // 스티커 구매 비용 차감
+        await db.promise().query(
+            "UPDATE users SET points = points - ? WHERE id = ?",
+            [totalPrice, userId]
+        );
+        
+        // 새로운 스티커들 DB에 저장 (기존 것은 그대로 유지)
+        if (decorations && decorations.length > 0) {
+            for (const deco of decorations) {
+                await db.promise().query(
+                    "INSERT INTO decorations (photo_id, item_id, x, y, scale, rotation) VALUES (?, ?, ?, ?, ?, ?)",
+                    [photoId, deco.item_id, deco.x, deco.y, deco.scale, deco.rotation]
+                );
+            }
+        }
+        
+        // 변경된 포인트 다시 조회해서 반환
+        const [updatedUser] = await db.promise().query(
+            "SELECT points FROM users WHERE id = ?",
+            [userId]
+        );
+        
+        console.log('꾸미기 추가 성공:', { remainingPoints: updatedUser[0].points });
+        
+        res.status(200).json({
+            success: true,
+            remainingPoints: updatedUser[0].points
+        });
+    } catch (error) {
+        console.error("꾸미기 추가 오류:", error);
+        res.status(500).json({ error: "저장 중 오류가 발생했습니다: " + error.message });
+    }
+});
+
+// 사진 꾸미기 완료 (전체 재저장)
+// 주석: 혹시 나중에 필요할 수도 있어서 남겨둠
+app.post("/api/decorate/complete", async (req, res) => {
+    const userId = req.session.userId;
+    const { photoId, totalPrice, decorations } = req.body;
+    
+    if (!userId) {
+        return res.status(401).json({ error: "로그인이 필요합니다." });
+    }
+    
+    console.log('꾸미기 완료 요청:', { photoId, totalPrice, decorationsCount: decorations?.length });
+    
+    try {
+        // 포인트 확인
+        const [userRows] = await db.promise().query(
+            "SELECT points FROM users WHERE id = ?",
+            [userId]
+        );
+        
+        if (userRows[0].points < totalPrice) {
+            return res.status(400).json({ error: "포인트가 부족합니다." });
+        }
+        
+        // 포인트 차감
+        await db.promise().query(
+            "UPDATE users SET points = points - ? WHERE id = ?",
+            [totalPrice, userId]
+        );
+        
+        // 기존 스티커들 삭제 후 새로 저장하려면 아래 주석 해제
+        // await db.promise().query(
+        //     "DELETE FROM decorations WHERE photo_id = ?",
+        //     [photoId]
+        // );
+        
+        // 스티커들 저장
+        if (decorations && decorations.length > 0) {
+            for (const deco of decorations) {
+                await db.promise().query(
+                    "INSERT INTO decorations (photo_id, item_id, x, y, scale, rotation) VALUES (?, ?, ?, ?, ?, ?)",
+                    [photoId, deco.item_id, deco.x, deco.y, deco.scale, deco.rotation]
+                );
+            }
+        }
+        
+        // 업데이트된 포인트 조회
+        const [updatedUser] = await db.promise().query(
+            "SELECT points FROM users WHERE id = ?",
+            [userId]
+        );
+        
+        console.log('꾸미기 완료 성공:', { remainingPoints: updatedUser[0].points });
+        
+        res.status(200).json({
+            success: true,
+            remainingPoints: updatedUser[0].points
+        });
+    } catch (error) {
+        console.error("꾸미기 완료 오류:", error);
+        res.status(500).json({ error: "저장 중 오류가 발생했습니다: " + error.message });
+    }
+});
+
+// 사진 메모 수정
+app.put("/api/photos/:photoId/memo", async (req, res) => {
+    const userId = req.session.userId;
+    const photoId = req.params.photoId;
+    const { memo } = req.body;
+    
+    if (!userId) {
+        return res.status(401).json({ error: "로그인이 필요합니다." });
+    }
+    
+    try {
+        // 내 사진인지 확인
+        const [photoCheck] = await db.promise().query(
+            "SELECT id FROM photos WHERE id = ? AND user_id = ?",
+            [photoId, userId]
+        );
+        
+        if (photoCheck.length === 0) {
+            return res.status(404).json({ error: "사진을 찾을 수 없습니다." });
+        }
+        
+        // 메모 업데이트
+        await db.promise().query(
+            "UPDATE photos SET memo = ? WHERE id = ? AND user_id = ?",
+            [memo, photoId, userId]
+        );
+        
+        res.status(200).json({ success: true, message: "메모가 수정되었습니다." });
+    } catch (error) {
+        console.error("메모 수정 오류:", error);
+        res.status(500).json({ error: "메모 수정 중 오류가 발생했습니다." });
+    }
+});
+
+// 서버 시작
 const PORT = 5000;
 app.listen(PORT, () => {
-  console.log(`✅ 서버 실행 중: http://localhost:${PORT}`);
+  console.log(`✅ 서버 실행 중: http://localhost:${PORT}`);
 });
