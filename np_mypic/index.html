@@ -110,9 +110,10 @@
       background: #567a71;
     }
   </style>
+  <link rel="stylesheet" href="app.css">
 </head>
 
-<body>
+<body class="auth-page">
   <div class="container">
     <!-- 로고 제목 -->
     <h1 class="title">My Pic!</h1>
@@ -161,9 +162,9 @@
           const message = await response.text();
           alert(message);
 
-          // 로그인 성공 시 testtest.html로 이동
+          // 로그인 성공 시 main.html로 이동
           if (response.ok) {
-            window.location.href = "./testtest.html";
+            window.location.href = "./main.html";
           }
         } catch (error) {
           console.error('로그인 요청 오류:', error);

@@ -1,18 +1,15 @@
 const express = require("express");
 const multer = require("multer");
-const dotenv = require("dotenv");
 const streamifier = require("streamifier");
-const { v2: cloudinary } = require("cloudinary");
 const mysql = require("mysql2"); 
 const bcrypt = require('bcrypt'); 
-const path = require('path'); 
 const session = require('express-session'); 
-const MySQLStore = require('express-mysql-session')(session); 
+const MySQLStore = require('express-mysql-session')(session);
+const dotenv = require("dotenv");
+const { v2: cloudinary } = require("cloudinary");
 
-// .env 파일에서 환경변수 가져오기
 dotenv.config();
 
-// Cloudinary 계정 연결 (이미지 저장소)
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
   api_key: process.env.CLOUDINARY_API_KEY,
@@ -20,14 +17,28 @@ cloudinary.config({
 });
 
 const app = express();
+const isProduction = process.env.NODE_ENV === 'production';
+const sessionSecret = process.env.SESSION_SECRET || 'dev_secret_key_for_mypic';
+
+if (isProduction) {
+    app.set('trust proxy', 1);
+}
+
+if (isProduction && !process.env.SESSION_SECRET) {
+    throw new Error("운영 환경에서는 SESSION_SECRET을 반드시 설정해야 합니다.");
+}
+
+if (!isProduction && !process.env.SESSION_SECRET) {
+    console.warn("SESSION_SECRET이 설정되지 않아 개발용 기본값을 사용합니다.");
+}
 
 // MySQL DB 연결 풀 생성
 const db = mysql.createPool({
-  host: '127.0.0.1', 
-  user: 'root',
-  password: '0000',
-  database: 'mypic',
-  port: 3307 
+  host: process.env.DB_HOST || '127.0.0.1',
+  user: process.env.DB_USER || 'root',
+  password: process.env.DB_PASSWORD || '0000',
+  database: process.env.DB_NAME || 'mypic',
+  port: Number(process.env.DB_PORT || 3307)
 });
 
 // 세션 데이터를 MySQL에 저장하기 위한 스토어
@@ -42,17 +53,49 @@ app.use(express.static("np_mypic"));
 
 // 세션 미들웨어 설정 (로그인 상태 유지)
 app.use(session({
-    secret: process.env.SESSION_SECRET || 'super_secret_key_for_mypic', // 세션 암호화 키
+    secret: sessionSecret, // 세션 암호화 키
     store: sessionStore, // DB에 세션 저장
     resave: false, // 변경사항 없으면 저장 안함
     saveUninitialized: false, // 빈 세션 저장 안함
     cookie: {
+        httpOnly: true,
+        sameSite: 'lax',
+        secure: isProduction,
         maxAge: 1000 * 60 * 60 * 24 // 쿠키 유효기간 24시간
     }
 }));
 
+app.get("/health", (req, res) => {
+    res.status(200).json({ status: "ok" });
+});
+
 // 파일 업로드 설정 (메모리에 임시 저장)
-const upload = multer({ storage: multer.memoryStorage() });
+const MAX_UPLOAD_SIZE = 5 * 1024 * 1024;
+const upload = multer({
+    storage: multer.memoryStorage(),
+    limits: {
+        fileSize: MAX_UPLOAD_SIZE,
+        files: 1
+    },
+    fileFilter: (req, file, cb) => {
+        if (!file.mimetype || !file.mimetype.startsWith('image/')) {
+            return cb(new Error("이미지 파일만 업로드할 수 있습니다."));
+        }
+        cb(null, true);
+    }
+});
+
+const uploadSinglePhoto = (req, res, next) => {
+    upload.single("file")(req, res, (err) => {
+        if (!err) return next();
+
+        if (err instanceof multer.MulterError && err.code === "LIMIT_FILE_SIZE") {
+            return res.status(400).json({ error: "5MB 이하 이미지만 업로드할 수 있습니다." });
+        }
+
+        return res.status(400).json({ error: err.message || "업로드할 수 없는 파일입니다." });
+    });
+};
 
 // 메모리 버퍼를 Cloudinary로 업로드하는 함수
 const uploadToCloudinary = (buffer) => {
@@ -72,7 +115,8 @@ const uploadToCloudinary = (buffer) => {
 
 // 회원가입
 app.post("/signup", async (req, res) => {
-    const { username, password } = req.body;
+    const username = (req.body.username || "").trim();
+    const password = req.body.password || "";
     
     // 빈 값 체크
     if (!username || !password) {
@@ -101,7 +145,8 @@ app.post("/signup", async (req, res) => {
 
 // 로그인
 app.post("/login", async (req, res) => {
-    const { username, password } = req.body;
+    const username = (req.body.username || "").trim();
+    const password = req.body.password || "";
     
     if (!username || !password) {
         return res.status(400).send("아이디와 비밀번호를 모두 입력해주세요.");
@@ -118,14 +163,21 @@ app.post("/login", async (req, res) => {
         
         // 비밀번호 일치 여부 확인 (해시값 비교)
         const isPasswordMatch = await bcrypt.compare(password, user.password);
-        if (isPasswordMatch) {
-            // 세션에 사용자 ID 저장 (로그인 상태 유지용)
-            req.session.userId = user.id; 
+        if (!isPasswordMatch) {
+            res.status(401).send("아이디 또는 비밀번호가 올바르지 않습니다.");
+            return;
+        }
+
+        req.session.regenerate((err) => {
+            if (err) {
+                console.error("세션 재생성 오류:", err);
+                return res.status(500).send("로그인 중 오류가 발생했습니다.");
+            }
+
+            req.session.userId = user.id;
             console.log(`로그인 성공: ${username}, ID: ${user.id}`);
             res.status(200).send("로그인에 성공했습니다.");
-        } else {
-            res.status(401).send("아이디 또는 비밀번호가 올바르지 않습니다.");
-        }
+        });
     } catch (error) {
         console.error("로그인 오류:", error);
         res.status(500).send("로그인 중 오류가 발생했습니다.");
@@ -140,7 +192,11 @@ app.post("/logout", (req, res) => {
             console.error("로그아웃 오류:", err);
             return res.status(500).send("로그아웃 중 오류가 발생했습니다.");
         }
-        res.clearCookie('connect.sid'); // 세션 쿠키도 삭제
+        res.clearCookie('connect.sid', {
+            httpOnly: true,
+            sameSite: 'lax',
+            secure: isProduction
+        }); // 세션 쿠키도 삭제
         res.status(200).send("로그아웃 되었습니다.");
     });
 });
@@ -222,7 +278,7 @@ app.get("/api/photos/search", async (req, res) => {
 });
 
 // 사진 업로드
-app.post("/upload", upload.single("file"), async (req, res) => {
+app.post("/upload", uploadSinglePhoto, async (req, res) => {
     const userId = req.session.userId; 
     const memo = req.body.memo || null; // 메모는 선택사항
     
@@ -235,6 +291,10 @@ app.post("/upload", upload.single("file"), async (req, res) => {
         // 파일 첨부 여부 확인
         if (!req.file) {
             return res.status(400).json({ error: "파일이 없습니다." });
+        }
+
+        if (!req.file.mimetype || !req.file.mimetype.startsWith('image/')) {
+            return res.status(400).json({ error: "이미지 파일만 업로드할 수 있습니다." });
         }
         
         // Cloudinary에 이미지 업로드 (buffer → URL)
@@ -374,121 +434,101 @@ app.get("/api/decorations/:photoId", async (req, res) => {
 // 사진 꾸미기 (새 스티커 추가)
 app.post("/api/decorate/add", async (req, res) => {
     const userId = req.session.userId;
-    const { photoId, totalPrice, decorations } = req.body;
-    
+    const { photoId, decorations } = req.body; // totalPrice는 서버에서 직접 계산
+    const newDecorations = Array.isArray(decorations) ? decorations : [];
+
     if (!userId) {
         return res.status(401).json({ error: "로그인이 필요합니다." });
     }
-    
-    console.log('꾸미기 추가 요청:', { photoId, totalPrice, decorationsCount: decorations?.length });
-    
+
+    if (!photoId || newDecorations.length === 0) {
+        return res.status(400).json({ error: "저장할 스티커가 없습니다." });
+    }
+
+    const itemIds = newDecorations.map(d => Number(d.item_id));
+    if (itemIds.some(id => !Number.isInteger(id) || id <= 0)) {
+        return res.status(400).json({ error: "올바르지 않은 스티커 정보가 포함되어 있습니다." });
+    }
+
+    console.log('꾸미기 추가 요청:', { photoId, decorationsCount: newDecorations.length });
+
     try {
-        // 내 포인트 확인
-        const [userRows] = await db.promise().query(
-            "SELECT points FROM users WHERE id = ?",
-            [userId]
+        // Fix 2: 사진이 로그인한 사용자 소유인지 확인
+        const [photoCheck] = await db.promise().query(
+            "SELECT id FROM photos WHERE id = ? AND user_id = ?",
+            [photoId, userId]
         );
-        
-        // 포인트 부족하면 거절
-        if (userRows[0].points < totalPrice) {
-            return res.status(400).json({ error: "포인트가 부족합니다." });
+        if (photoCheck.length === 0) {
+            return res.status(404).json({ error: "사진을 찾을 수 없습니다." });
         }
-        
-        // 스티커 구매 비용 차감
-        await db.promise().query(
-            "UPDATE users SET points = points - ? WHERE id = ?",
-            [totalPrice, userId]
+
+        // Fix 1: 클라이언트 totalPrice 대신 서버에서 직접 가격 계산
+        const [itemRows] = await db.promise().query(
+            "SELECT id, price FROM items WHERE id IN (?)",
+            [itemIds]
         );
-        
-        // 새로운 스티커들 DB에 저장 (기존 것은 그대로 유지)
-        if (decorations && decorations.length > 0) {
-            for (const deco of decorations) {
-                await db.promise().query(
+        const priceMap = {};
+        itemRows.forEach(item => { priceMap[item.id] = item.price; });
+
+        const hasMissingItem = itemIds.some(id => priceMap[id] === undefined);
+        if (hasMissingItem) {
+            return res.status(400).json({ error: "존재하지 않는 스티커가 포함되어 있습니다." });
+        }
+
+        const totalPrice = newDecorations.reduce((sum, d) => sum + priceMap[Number(d.item_id)], 0);
+        const connection = await db.promise().getConnection();
+
+        try {
+            await connection.beginTransaction();
+
+            // Fix 5: SELECT + UPDATE 분리 대신 WHERE points >= ? 로 원자적 차감
+            const [updateResult] = await connection.query(
+                "UPDATE users SET points = points - ? WHERE id = ? AND points >= ?",
+                [totalPrice, userId, totalPrice]
+            );
+
+            if (updateResult.affectedRows === 0) {
+                await connection.rollback();
+                connection.release();
+                return res.status(400).json({ error: "포인트가 부족합니다." });
+            }
+
+            // 새로운 스티커들 DB에 저장 (기존 것은 그대로 유지)
+            for (const deco of newDecorations) {
+                await connection.query(
                     "INSERT INTO decorations (photo_id, item_id, x, y, scale, rotation) VALUES (?, ?, ?, ?, ?, ?)",
-                    [photoId, deco.item_id, deco.x, deco.y, deco.scale, deco.rotation]
+                    [photoId, Number(deco.item_id), deco.x, deco.y, deco.scale, deco.rotation]
                 );
             }
+
+            // 변경된 포인트 다시 조회해서 반환
+            const [updatedUser] = await connection.query(
+                "SELECT points FROM users WHERE id = ?",
+                [userId]
+            );
+
+            await connection.commit();
+            connection.release();
+
+            console.log('꾸미기 추가 성공:', { remainingPoints: updatedUser[0].points });
+
+            res.status(200).json({
+                success: true,
+                remainingPoints: updatedUser[0].points
+            });
+        } catch (error) {
+            await connection.rollback();
+            connection.release();
+            throw error;
         }
-        
-        // 변경된 포인트 다시 조회해서 반환
-        const [updatedUser] = await db.promise().query(
-            "SELECT points FROM users WHERE id = ?",
-            [userId]
-        );
-        
-        console.log('꾸미기 추가 성공:', { remainingPoints: updatedUser[0].points });
-        
-        res.status(200).json({
-            success: true,
-            remainingPoints: updatedUser[0].points
-        });
     } catch (error) {
         console.error("꾸미기 추가 오류:", error);
         res.status(500).json({ error: "저장 중 오류가 발생했습니다: " + error.message });
     }
 });
 
-// 사진 꾸미기 완료 (전체 재저장)
-// 주석: 혹시 나중에 필요할 수도 있어서 남겨둠
-app.post("/api/decorate/complete", async (req, res) => {
-    const userId = req.session.userId;
-    const { photoId, totalPrice, decorations } = req.body;
-    
-    if (!userId) {
-        return res.status(401).json({ error: "로그인이 필요합니다." });
-    }
-    
-    console.log('꾸미기 완료 요청:', { photoId, totalPrice, decorationsCount: decorations?.length });
-    
-    try {
-        // 포인트 확인
-        const [userRows] = await db.promise().query(
-            "SELECT points FROM users WHERE id = ?",
-            [userId]
-        );
-        
-        if (userRows[0].points < totalPrice) {
-            return res.status(400).json({ error: "포인트가 부족합니다." });
-        }
-        
-        // 포인트 차감
-        await db.promise().query(
-            "UPDATE users SET points = points - ? WHERE id = ?",
-            [totalPrice, userId]
-        );
-        
-        // 기존 스티커들 삭제 후 새로 저장하려면 아래 주석 해제
-        // await db.promise().query(
-        //     "DELETE FROM decorations WHERE photo_id = ?",
-        //     [photoId]
-        // );
-        
-        // 스티커들 저장
-        if (decorations && decorations.length > 0) {
-            for (const deco of decorations) {
-                await db.promise().query(
-                    "INSERT INTO decorations (photo_id, item_id, x, y, scale, rotation) VALUES (?, ?, ?, ?, ?, ?)",
-                    [photoId, deco.item_id, deco.x, deco.y, deco.scale, deco.rotation]
-                );
-            }
-        }
-        
-        // 업데이트된 포인트 조회
-        const [updatedUser] = await db.promise().query(
-            "SELECT points FROM users WHERE id = ?",
-            [userId]
-        );
-        
-        console.log('꾸미기 완료 성공:', { remainingPoints: updatedUser[0].points });
-        
-        res.status(200).json({
-            success: true,
-            remainingPoints: updatedUser[0].points
-        });
-    } catch (error) {
-        console.error("꾸미기 완료 오류:", error);
-        res.status(500).json({ error: "저장 중 오류가 발생했습니다: " + error.message });
-    }
+app.post("/api/decorate/complete", (req, res) => {
+    res.status(410).json({ error: "이전 꾸미기 저장 API는 더 이상 사용하지 않습니다. /api/decorate/add를 사용해주세요." });
 });
 
 // 사진 메모 수정
@@ -525,8 +565,47 @@ app.put("/api/photos/:photoId/memo", async (req, res) => {
     }
 });
 
+// 포인트 적립 (10번 클릭 = 1포인트)
+app.post("/api/points/earn", async (req, res) => {
+    const userId = req.session.userId;
+
+    if (!userId) {
+        return res.status(401).json({ error: "로그인이 필요합니다." });
+    }
+
+    const now = Date.now();
+    if (req.session.lastPointEarnedAt && now - req.session.lastPointEarnedAt < 1000) {
+        return res.status(429).json({ error: "잠시 후 다시 포인트를 받을 수 있습니다." });
+    }
+
+    try {
+        req.session.lastPointEarnedAt = now;
+
+        // 포인트 1점 추가
+        await db.promise().query(
+            "UPDATE users SET points = points + 1 WHERE id = ?",
+            [userId]
+        );
+
+        // 업데이트된 포인트 조회
+        const [rows] = await db.promise().query(
+            "SELECT points FROM users WHERE id = ?",
+            [userId]
+        );
+
+        console.log(`포인트 적립 성공: User ${userId}, 새 포인트: ${rows[0].points}`);
+
+        res.status(200).json({
+            success: true,
+            newPoints: rows[0].points
+        });
+    } catch (error) {
+        console.error("포인트 적립 오류:", error);
+        res.status(500).json({ error: "포인트 적립 중 오류가 발생했습니다." });
+    }
+});
 // 서버 시작
-const PORT = 5000;
+const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`✅ 서버 실행 중: http://localhost:${PORT}`);
 });

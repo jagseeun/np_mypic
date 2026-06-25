@@ -225,8 +225,9 @@
             }
         }
     </style>
+    <link rel="stylesheet" href="app.css">
 </head>
-<body>
+<body class="editor-page">
     <div class="header">
         <h1 class="title">My Pic!</h1>
         <button class="info-icon" onclick="showInfo()">ⓘ</button>
@@ -260,6 +261,12 @@
                     가격 : <span id="totalPrice">0</span>
                 </div>
 
+                <div class="tool-actions">
+                    <button type="button" class="tool-btn" id="undoBtn" onclick="undoLastSticker()" disabled>되돌리기</button>
+                    <button type="button" class="tool-btn" id="clearBtn" onclick="clearNewStickers()" disabled>새 스티커 지우기</button>
+                </div>
+
+                <div class="sticker-status" id="stickerStatus">새 스티커 0개</div>
                 <button class="complete-btn" id="completeBtn" onclick="completeDecoration()">완료</button>
             </div>
         </div>
@@ -272,6 +279,7 @@
         let photoImageUrl = '';
         let stickerItems = {};
         let activeResizeHandle = null;
+        let stickerHistory = [];
 
         // 페이지 로드 시 초기화
         window.addEventListener('DOMContentLoaded', async () => {
@@ -382,6 +390,9 @@
             document.querySelectorAll('.sticker-item').forEach(el => el.classList.remove('selected'));
             element.classList.add('selected');
             selectedSticker = element.dataset.emoji;
+            const item = stickerItems[selectedSticker];
+            const status = item ? `${item.name} 선택됨 · ${item.price}P` : '스티커 선택됨';
+            document.getElementById('stickerStatus').textContent = status;
         }
 
         // 이미지 컨테이너 클릭 시 스티커 추가
@@ -504,13 +515,17 @@
             // 더블클릭으로 삭제
             sticker.addEventListener('dblclick', (e) => {
                 e.stopPropagation();
-                if (confirm('스티커를 삭제하시겠습니까?')) {
+            if (confirm('스티커를 삭제하시겠습니까?')) {
+                    stickerHistory = stickerHistory.filter(item => item !== sticker);
                     sticker.remove();
                     updateTotalPrice();
                 }
             });
 
             container.appendChild(sticker);
+            if (!isExisting) {
+                stickerHistory.push(sticker);
+            }
             updateTotalPrice();
         }
 
@@ -533,8 +548,48 @@
                 btn.disabled = false;
                 btn.textContent = '완료';
             }
-            
+
+            updateToolButtons(total);
             return total;
+        }
+
+        function getNewStickers() {
+            return Array.from(document.querySelectorAll('.placed-sticker')).filter(sticker => !sticker.dataset.existing);
+        }
+
+        function updateToolButtons(total) {
+            const newStickers = getNewStickers();
+            const undoBtn = document.getElementById('undoBtn');
+            const clearBtn = document.getElementById('clearBtn');
+            const status = document.getElementById('stickerStatus');
+
+            undoBtn.disabled = newStickers.length === 0;
+            clearBtn.disabled = newStickers.length === 0;
+            status.textContent = newStickers.length > 0
+                ? `새 스티커 ${newStickers.length}개 · ${total}P`
+                : '새 스티커 0개';
+        }
+
+        function undoLastSticker() {
+            while (stickerHistory.length > 0) {
+                const sticker = stickerHistory.pop();
+                if (sticker && sticker.isConnected && !sticker.dataset.existing) {
+                    sticker.remove();
+                    updateTotalPrice();
+                    return;
+                }
+            }
+            updateTotalPrice();
+        }
+
+        function clearNewStickers() {
+            const newStickers = getNewStickers();
+            if (newStickers.length === 0) return;
+            if (!confirm('새로 추가한 스티커를 모두 지울까요?')) return;
+
+            newStickers.forEach(sticker => sticker.remove());
+            stickerHistory = [];
+            updateTotalPrice();
         }
 
         // 꾸미기 완료
@@ -583,7 +638,6 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         photoId: parseInt(photoId),
-                        totalPrice: totalPrice,
                         decorations: decorations
                     })
                 });
@@ -614,7 +668,7 @@
 
         function goBack() {
             if (confirm('꾸미기를 취소하시겠습니까?')) {
-                window.location.href = './testtest.html';
+                window.location.href = './main.html';
             }
         }
     </script>

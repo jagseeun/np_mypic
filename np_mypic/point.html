@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Pic! - 포인트 적립</title>
+    <style>
+        @font-face {
+            font-family: 'Ownglyph_ParkDaHyun';
+            src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/2411-3@1.0/Ownglyph_ParkDaHyun.woff2') format('woff2');
+            font-weight: normal;
+            font-display: swap;
+        }
+        * {
+            font-family: 'Ownglyph_ParkDaHyun', sans-serif;
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            background: linear-gradient(180deg, #D1FEE0 5%, #afcded 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            cursor: pointer;
+            user-select: none;
+        }
+        .header {
+            position: absolute;
+            top: 30px;
+            width: 100%;
+            text-align: center;
+        }
+        .title {
+            font-size: 4rem;
+            font-weight: bold;
+            color: #4a9b8e;
+        }
+        .back-btn {
+            position: absolute;
+            top: 30px;
+            left: 30px;
+            background: #333;
+            border: none;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            color: white;
+            font-size: 1.8rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+        }
+        .back-btn:hover {
+            background: #222;
+        }
+        .points-display {
+            position: absolute;
+            top: 30px;
+            right: 30px;
+            font-size: 2rem;
+            color: #4a9b8e;
+            font-weight: bold;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 10px 20px;
+            border-radius: 50px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            z-index: 100;
+        }
+        .main-content {
+            text-align: center;
+            z-index: 10;
+        }
+        .click-counter {
+            font-size: 3rem;
+            color: #4a9b8e;
+            margin-bottom: 20px;
+            font-weight: bold;
+        }
+        .instruction {
+            font-size: 2rem;
+            color: #333;
+            background: rgba(255, 255, 255, 0.8);
+            padding: 20px 40px;
+            border-radius: 20px;
+            margin-bottom: 30px;
+        }
+        .progress-bar {
+            width: 300px;
+            height: 30px;
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 15px;
+            overflow: hidden;
+            margin: 0 auto 20px;
+            border: 2px solid #4a9b8e;
+        }
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4a9b8e, #7cb8ac);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+        .emoji-particle {
+            position: absolute;
+            font-size: 2rem;
+            pointer-events: none;
+            animation: float-up 1.5s ease-out forwards;
+            z-index: 1;
+        }
+        @keyframes float-up {
+            0% {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+            100% {
+                opacity: 0;
+                transform: translateY(-150px) scale(1.5);
+            }
+        }
+        .success-message {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0);
+            background: white;
+            padding: 40px 60px;
+            border-radius: 20px;
+            font-size: 2.5rem;
+            color: #4a9b8e;
+            font-weight: bold;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            z-index: 200;
+            opacity: 0;
+            transition: all 0.3s ease;
+        }
+        .success-message.show {
+            transform: translate(-50%, -50%) scale(1);
+            opacity: 1;
+        }
+        @media (max-width: 768px) {
+            .title {
+                font-size: 3rem;
+            }
+            .click-counter {
+                font-size: 2.5rem;
+            }
+            .instruction {
+                font-size: 1.6rem;
+                padding: 15px 30px;
+            }
+        }
+    </style>
+    <link rel="stylesheet" href="app.css">
+</head>
+<body class="point-page">
+    <div class="header">
+        <h1 class="title">My Pic!</h1>
+    </div>
+
+    <button class="back-btn" onclick="goBack()">←</button>
+    <div class="points-display">포인트 : <span id="userPoints">0</span></div>
+
+    <div class="main-content">
+        <div class="click-counter">
+            <span id="clickCount">0</span> / 10 클릭
+        </div>
+
+        <div class="progress-bar">
+            <div class="progress-fill" id="progressFill"></div>
+        </div>
+
+        <div class="instruction">
+            화면을 클릭해서<br>포인트를 모아보세요! 🎉
+        </div>
+    </div>
+
+    <div class="success-message" id="successMessage">
+        +1 포인트 획득! 🎊
+    </div>
+
+    <script>
+        let clickCount = 0;
+        let currentPoints = 0;
+        let isEarning = false; // Fix 3: 중복 적립 방지 플래그
+        const emojis = ['💖', '⭐', '🎀', '🌸', '💯', '👍', '✨', '🎉'];
+
+        // 페이지 로드 시 포인트 조회
+        window.addEventListener('DOMContentLoaded', async () => {
+            await loadUserPoints();
+        });
+
+        // 사용자 포인트 조회
+        async function loadUserPoints() {
+            try {
+                const res = await fetch('/api/user/points');
+                if (res.ok) {
+                    const data = await res.json();
+                    currentPoints = data.points;
+                    document.getElementById('userPoints').textContent = currentPoints;
+                }
+            } catch (err) {
+                console.error('포인트 조회 오류:', err);
+            }
+        }
+
+        // 화면 클릭 이벤트
+        document.body.addEventListener('click', async (e) => {
+            // 뒤로가기 버튼 클릭은 무시
+            if (e.target.classList.contains('back-btn')) {
+                return;
+            }
+
+            // Fix 3: 적립 요청 중에는 클릭 무시
+            if (isEarning) return;
+
+            clickCount++;
+            updateClickDisplay();
+
+            // 이모지 파티클 생성
+            createEmojiParticle(e.clientX, e.clientY);
+
+            // 10번 클릭 달성
+            if (clickCount >= 10) {
+                isEarning = true;
+                clickCount = 0;
+                updateClickDisplay();
+                await earnPoint();
+                isEarning = false;
+            }
+        });
+
+        // 클릭 수 UI 업데이트
+        function updateClickDisplay() {
+            document.getElementById('clickCount').textContent = clickCount;
+            const progress = (clickCount / 10) * 100;
+            document.getElementById('progressFill').style.width = progress + '%';
+        }
+
+        // 이모지 파티클 생성
+        function createEmojiParticle(x, y) {
+            const particle = document.createElement('div');
+            particle.className = 'emoji-particle';
+            particle.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+            particle.style.left = x + 'px';
+            particle.style.top = y + 'px';
+            document.body.appendChild(particle);
+
+            setTimeout(() => {
+                particle.remove();
+            }, 1500);
+        }
+
+        // 포인트 획득
+        async function earnPoint() {
+            try {
+                const res = await fetch('/api/points/earn', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+
+                if (res.ok) {
+                    const data = await res.json();
+                    currentPoints = data.newPoints;
+                    document.getElementById('userPoints').textContent = currentPoints;
+
+                    // 성공 메시지 표시
+                    showSuccessMessage();
+                } else {
+                    const error = await res.json();
+                    alert(error.error || '포인트 적립 실패');
+                }
+            } catch (err) {
+                console.error('포인트 적립 오류:', err);
+                alert('포인트 적립 중 오류가 발생했습니다.');
+            }
+        }
+
+        // 성공 메시지 표시
+        function showSuccessMessage() {
+            const msg = document.getElementById('successMessage');
+            msg.classList.add('show');
+
+            // 화면 전체에 이모지 폭죽
+            for (let i = 0; i < 15; i++) {
+                setTimeout(() => {
+                    const x = Math.random() * window.innerWidth;
+                    const y = Math.random() * window.innerHeight;
+                    createEmojiParticle(x, y);
+                }, i * 50);
+            }
+
+            setTimeout(() => {
+                msg.classList.remove('show');
+            }, 2000);
+        }
+
+        // 뒤로가기
+        function goBack() {
+            window.location.href = 'main.html';
+        }
+    </script>
+</body>
+</html>

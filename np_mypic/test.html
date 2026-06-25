@@ -204,9 +204,10 @@
             font-size: 1.8rem;
         }
     </style>
+    <link rel="stylesheet" href="app.css">
 </head>
 
-<body>
+<body class="upload-page">
 
     <!-- 상단 제목 및 뒤로가기 버튼 -->
     <div class="header">
@@ -226,6 +227,7 @@
                 <label for="fileInput" class="upload-label">사진 선택</label>
             </form>
 
+            <p id="fileMeta" class="file-meta">JPG, PNG, GIF 이미지 · 5MB 이하</p>
             <div id="result"></div>
         </div>
 
@@ -260,11 +262,31 @@
         const uploadFinalBtn = document.getElementById("uploadFinalBtn");
         const uploadResultDiv = document.getElementById("uploadResult");
         const resultDiv = document.getElementById("result");
+        const fileMeta = document.getElementById("fileMeta");
+        const MAX_FILE_SIZE = 5 * 1024 * 1024;
+        const DEFAULT_FILE_META = 'JPG, PNG, GIF 이미지 · 5MB 이하';
 
         // 1. 파일 선택 시 실행
         fileInput.addEventListener('change', (e) => {
             if (e.target.files.length > 0) {
                 const file = e.target.files[0];
+
+                if (!file.type.startsWith('image/')) {
+                    fileInput.value = '';
+                    fileMeta.textContent = '';
+                    setUploadMessage(resultDiv, '이미지 파일만 업로드할 수 있습니다.', 'error');
+                    return;
+                }
+
+                if (file.size > MAX_FILE_SIZE) {
+                    fileInput.value = '';
+                    fileMeta.textContent = '';
+                    setUploadMessage(resultDiv, '5MB 이하 이미지만 업로드할 수 있습니다.', 'error');
+                    return;
+                }
+
+                setUploadMessage(resultDiv, '', '');
+                fileMeta.textContent = `${file.name} · ${formatFileSize(file.size)}`;
                 const reader = new FileReader();
 
                 // 파일 읽기 완료 후 미리보기 표시
@@ -286,13 +308,15 @@
         function showSelectStep() {
             selectStep.style.display = 'flex';
             detailStep.style.display = 'none';
-            uploadResultDiv.innerHTML = '';
+            setUploadMessage(uploadResultDiv, '', '');
         }
 
         // 초기화 (파일, 메모 비우기)
         function resetForm() {
             fileInput.value = '';
             memoInput.value = '';
+            fileMeta.textContent = DEFAULT_FILE_META;
+            imagePreview.removeAttribute('src');
             showSelectStep();
         }
 
@@ -305,7 +329,12 @@
                 return;
             }
 
-            uploadResultDiv.innerHTML = '<p style="color:#4a9b8e;">업로드 중입니다...</p>';
+            if (!file.type.startsWith('image/') || file.size > MAX_FILE_SIZE) {
+                setUploadMessage(uploadResultDiv, '업로드할 수 없는 파일입니다. 이미지는 5MB 이하만 가능합니다.', 'error');
+                return;
+            }
+
+            setUploadMessage(uploadResultDiv, '업로드 중입니다...', '');
             uploadFinalBtn.disabled = true;
 
             const formData = new FormData();
@@ -321,22 +350,34 @@
                 const json = await res.json();
 
                 if (res.ok && json.url) {
-                    uploadResultDiv.innerHTML = `<p style="color:green;">업로드 성공! 포인트 20점 적립</p>`;
+                    setUploadMessage(uploadResultDiv, '업로드 성공! 포인트 20점 적립', 'success');
                     setTimeout(() => moveMain(), 3000);
                 } else {
                     const errorMessage = json.error || '알 수 없는 오류';
-                    uploadResultDiv.innerHTML = `<p style="color:red;">업로드 실패: ${errorMessage}</p>`;
+                    setUploadMessage(uploadResultDiv, `업로드 실패: ${errorMessage}`, 'error');
                 }
             } catch (err) {
-                uploadResultDiv.innerHTML = `<p style="color:red;">네트워크 오류 발생: ${err.message}</p>`;
+                setUploadMessage(uploadResultDiv, `네트워크 오류 발생: ${err.message}`, 'error');
             } finally {
                 uploadFinalBtn.disabled = false;
             }
         });
 
+        function setUploadMessage(target, message, type) {
+            target.textContent = message;
+            target.className = 'upload-status';
+            if (type) {
+                target.classList.add(`is-${type}`);
+            }
+        }
+
+        function formatFileSize(size) {
+            return `${(size / 1024 / 1024).toFixed(1)}MB`;
+        }
+
         // 메인 페이지로 이동
         function moveMain() {
-            location.href = "./testtest.html";
+            location.href = "./main.html";
         }
     </script>
 

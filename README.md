@@ -29,7 +29,7 @@ npm install
 npm start
 ```
 
-서버는 기본적으로 `http://localhost:5000`에서 실행됩니다.
+서버는 기본적으로 `http://localhost:5000`에서 실행됩니다. `PORT` 환경 변수를 설정하면 다른 포트로 실행할 수 있습니다.
 
 ## 환경 변수
 
@@ -41,6 +41,7 @@ DB_USER=root
 DB_PASSWORD=your_password
 DB_NAME=mypic
 DB_PORT=3307
+PORT=5000
 
 SESSION_SECRET=your_session_secret
 
@@ -73,7 +74,7 @@ NODE_ENV=development
 
 ## 데이터베이스
 
-서버 코드는 사용자, 사진, 꾸미기 아이템, 세션 정보를 MySQL에 저장합니다. 실행 전 `users`, `photos`, `decorations`, `items` 등 API에서 사용하는 테이블을 준비해야 합니다.
+서버 코드는 사용자, 사진, 꾸미기 아이템, 세션 정보를 MySQL에 저장합니다. 실행 전 `schema.sql`을 참고해 `users`, `photos`, `decorations`, `items` 등 API에서 사용하는 테이블을 준비해야 합니다.
 
 ## 포트폴리오 포인트
 
@@ -85,5 +86,5 @@ NODE_ENV=development
 ## 주의사항
 
 - `.env`와 API 키, DB 비밀번호는 커밋하지 않습니다.
-- `npm test`는 아직 실제 테스트가 연결되어 있지 않습니다.
-- 현재 서버 포트는 `server.js`의 `PORT = 5000`으로 고정되어 있습니다.
+- `npm test`는 `server.js` 문법 검증을 실행합니다.
+- 운영 환경에서는 반드시 `SESSION_SECRET`을 직접 설정해야 합니다.

@@ -1,0 +1,538 @@
+:root {
+  --mypic-ink: #26323f;
+  --mypic-muted: #667680;
+  --mypic-mint: #4a9b8e;
+  --mypic-mint-dark: #2f7a68;
+  --mypic-coral: #ef7565;
+  --mypic-sun: #ffd166;
+  --mypic-paper: rgba(255, 255, 255, 0.72);
+  --mypic-line: rgba(38, 50, 63, 0.12);
+  --mypic-shadow: 0 14px 34px rgba(38, 50, 63, 0.13);
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  color: var(--mypic-ink);
+  overflow-x: hidden;
+  background:
+    radial-gradient(circle at 14% 8%, rgba(255, 209, 102, 0.34), transparent 25%),
+    radial-gradient(circle at 86% 18%, rgba(239, 117, 101, 0.18), transparent 24%),
+    linear-gradient(180deg, #d6f9e4 0%, #c6dff2 100%) !important;
+}
+
+button,
+input,
+textarea {
+  font: inherit;
+  font-family: 'Ownglyph_ParkDaHyun', sans-serif !important;
+}
+
+input::placeholder,
+textarea::placeholder {
+  font-family: 'Ownglyph_ParkDaHyun', sans-serif !important;
+}
+
+button {
+  transition: transform 0.16s ease, background 0.16s ease, box-shadow 0.16s ease;
+}
+
+button:disabled {
+  cursor: not-allowed !important;
+  opacity: 0.58;
+  transform: none !important;
+}
+
+.title,
+.main-title {
+  color: var(--mypic-mint-dark) !important;
+  letter-spacing: 0;
+  text-shadow: 0 2px 0 rgba(255, 255, 255, 0.65);
+}
+
+.container {
+  border: 1px solid var(--mypic-line);
+  border-radius: 8px !important;
+  background: var(--mypic-paper) !important;
+  box-shadow: var(--mypic-shadow) !important;
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+
+.back-btn,
+.logout-btn,
+.info-icon,
+.search-btn {
+  box-shadow: 0 8px 18px rgba(38, 50, 63, 0.14);
+}
+
+.back-btn,
+.info-icon,
+.search-btn {
+  background: var(--mypic-mint) !important;
+}
+
+.back-btn:hover,
+.info-icon:hover,
+.search-btn:hover {
+  background: var(--mypic-mint-dark) !important;
+}
+
+.points-display,
+.point-display {
+  color: var(--mypic-mint-dark) !important;
+  background: rgba(255, 255, 255, 0.78);
+  border: 1px solid rgba(74, 155, 142, 0.22);
+  border-radius: 999px;
+  padding: 8px 16px;
+}
+
+.input-field,
+.search-input,
+.memo-input,
+textarea {
+  font-family: 'Ownglyph_ParkDaHyun', sans-serif !important;
+  border: 1px solid rgba(74, 155, 142, 0.3) !important;
+  box-shadow: 0 5px 16px rgba(38, 50, 63, 0.06);
+}
+
+.input-field:focus,
+.search-input:focus,
+.memo-input:focus,
+textarea:focus {
+  border-color: var(--mypic-mint) !important;
+  box-shadow: 0 0 0 4px rgba(74, 155, 142, 0.16) !important;
+}
+
+.btn,
+.upload-btn,
+.upload-label,
+.action-btn,
+.complete-btn,
+#uploadFinalBtn {
+  border-radius: 999px !important;
+  box-shadow: 0 9px 18px rgba(74, 155, 142, 0.18);
+}
+
+.btn:hover,
+.upload-btn:hover,
+.upload-label:hover,
+.action-btn:hover,
+.complete-btn:hover,
+#uploadFinalBtn:hover {
+  transform: translateY(-2px);
+}
+
+.gallery-summary {
+  position: absolute;
+  left: 18px;
+  right: 18px;
+  top: 72px;
+  z-index: 12;
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  color: var(--mypic-muted);
+  font-size: 1.05rem;
+}
+
+.gallery-container {
+  top: 108px !important;
+}
+
+.gallery {
+  align-items: start;
+}
+
+.image-item {
+  aspect-ratio: 1;
+  padding-top: 0 !important;
+  border-radius: 8px !important;
+  border: 1px solid rgba(38, 50, 63, 0.08);
+  box-shadow: 0 10px 20px rgba(38, 50, 63, 0.09);
+}
+
+.image-item:focus-visible {
+  outline: 4px solid rgba(239, 117, 101, 0.35);
+  outline-offset: 3px;
+}
+
+.photo-card-meta {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 2;
+  padding: 12px;
+  background: linear-gradient(180deg, transparent, rgba(38, 50, 63, 0.78));
+  color: #fff;
+  display: grid;
+  gap: 2px;
+}
+
+.photo-card-title {
+  font-size: 1.15rem;
+  line-height: 1.05;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.photo-card-date {
+  font-size: 0.9rem;
+  opacity: 0.88;
+}
+
+.state-message {
+  grid-column: 1 / -1;
+  min-height: 220px;
+  display: grid;
+  place-items: center;
+  text-align: center;
+  color: var(--mypic-muted);
+  border: 1px dashed rgba(74, 155, 142, 0.35);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.68);
+  padding: 24px;
+  font-size: 1.3rem;
+}
+
+.upload-status {
+  min-height: 30px;
+  margin-top: 16px;
+  text-align: center;
+  color: var(--mypic-muted);
+  font-size: 1.1rem;
+}
+
+.upload-status.is-success {
+  color: var(--mypic-mint-dark);
+}
+
+.upload-status.is-error {
+  color: #b44438;
+}
+
+.file-meta {
+  margin-top: 14px;
+  color: var(--mypic-muted);
+  text-align: center;
+  font-size: 1.05rem;
+}
+
+.tool-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin: 14px 0;
+}
+
+.tool-btn {
+  border: 1px solid rgba(74, 155, 142, 0.24);
+  background: #fff;
+  color: var(--mypic-mint-dark);
+  border-radius: 999px;
+  padding: 10px 14px;
+  cursor: pointer;
+  font-size: 1.05rem;
+}
+
+.tool-btn:hover {
+  background: rgba(255, 209, 102, 0.24);
+  transform: translateY(-1px);
+}
+
+.sticker-status {
+  min-height: 24px;
+  margin-top: 10px;
+  color: var(--mypic-muted);
+  text-align: center;
+  font-size: 1.05rem;
+}
+
+.price-info {
+  border: 1px solid rgba(239, 117, 101, 0.22);
+  border-radius: 8px;
+  background: rgba(255, 209, 102, 0.18);
+  padding: 12px !important;
+}
+
+.info-box,
+.stickers-grid,
+.image-container,
+.image-preview,
+.preview-image-box {
+  background-color: rgba(255, 255, 255, 0.72) !important;
+}
+
+.detail-page .content {
+  margin-top: 58px !important;
+}
+
+.auth-page .container {
+  max-width: 430px;
+  padding: 30px 34px 34px;
+}
+
+.auth-page .title {
+  font-size: 4.8rem !important;
+  margin-bottom: 34px !important;
+}
+
+.auth-page .button-group {
+  margin-top: 28px;
+}
+
+.auth-page .btn {
+  padding: 13px 32px;
+}
+
+.gallery-page {
+  overflow: auto !important;
+}
+
+.gallery-page .main-title {
+  margin-bottom: 16px !important;
+}
+
+.gallery-page .container {
+  width: min(920px, calc(100vw - 36px)) !important;
+  height: auto !important;
+  min-height: 0;
+  padding: 18px !important;
+}
+
+.gallery-page .gallery-container {
+  position: static !important;
+  max-height: none;
+  overflow: visible;
+  padding-right: 0;
+}
+
+.gallery-page .state-message {
+  min-height: 220px;
+}
+
+.gallery-page .upload-btn-container {
+  position: static !important;
+  transform: none !important;
+  margin: 16px 0 12px;
+}
+
+.gallery-page .logout-btn {
+  top: 20px !important;
+  right: 20px !important;
+}
+
+.gallery-page .search-container {
+  position: static !important;
+  margin-bottom: 12px;
+}
+
+.gallery-page .point-display {
+  top: 20px !important;
+  right: 80px !important;
+}
+
+.gallery-page .gallery-summary {
+  position: static;
+  margin: 8px 0 12px;
+}
+
+.upload-page .title {
+  font-size: 4.8rem !important;
+}
+
+.upload-page .container {
+  width: min(800px, calc(100vw - 36px));
+  min-height: 260px !important;
+  height: auto !important;
+  padding: 38px 36px !important;
+}
+
+.upload-page #selectStep {
+  justify-content: flex-start;
+  gap: 18px;
+  padding-top: 4px;
+}
+
+.upload-page .info-text {
+  margin-bottom: 4px;
+}
+
+.editor-page .container,
+.detail-page .container,
+.memo-page .container {
+  width: min(900px, calc(100vw - 36px));
+}
+
+@media (max-width: 760px) {
+  body {
+    padding: 14px !important;
+  }
+
+  .title,
+  .main-title {
+    font-size: 2.8rem !important;
+  }
+
+  .container {
+    align-self: flex-start;
+    width: 100% !important;
+    max-width: 350px !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    padding: 72px 16px 28px !important;
+    min-height: auto;
+  }
+
+  .auth-page .container {
+    padding: 24px 20px 26px !important;
+  }
+
+  .auth-page .button-group {
+    gap: 10px;
+  }
+
+  .auth-page .btn {
+    min-width: 0;
+    flex: 1;
+    padding: 12px 14px;
+    font-size: 1.25rem;
+  }
+
+  .gallery-page .container {
+    height: auto !important;
+    min-height: 0;
+    padding: 72px 16px 28px !important;
+  }
+
+  .upload-page .container {
+    min-height: 360px !important;
+    padding: 30px 20px !important;
+  }
+
+  .upload-page .info-text {
+    max-width: 260px;
+    margin-left: auto;
+    margin-right: auto;
+    font-size: 1.45rem !important;
+    line-height: 1.25;
+    white-space: normal;
+    word-break: keep-all;
+  }
+
+  .upload-page .upload-label {
+    font-size: 1.8rem !important;
+    padding: 13px 30px !important;
+  }
+
+  .editor-page .container,
+  .detail-page .container,
+  .memo-page .container {
+    overflow: hidden;
+  }
+
+  .editor-page .points-display,
+  .detail-page .points-display,
+  .point-page .points-display {
+    position: static !important;
+    display: inline-flex;
+    max-width: 100%;
+    margin: 0 0 14px 66px;
+    font-size: 1.25rem !important;
+  }
+
+  .editor-page .content,
+  .detail-page .content,
+  .memo-page .content {
+    width: 100%;
+    margin-top: 18px !important;
+    align-items: stretch !important;
+  }
+
+  .editor-page .image-section,
+  .editor-page .decoration-section,
+  .detail-page .image-section,
+  .detail-page .info-section,
+  .memo-page .image-section,
+  .memo-page .edit-section {
+    width: 100% !important;
+    max-width: 100%;
+    flex: none !important;
+  }
+
+  .editor-page .image-container,
+  .detail-page .image-container,
+  .memo-page .image-preview {
+    max-width: min(100%, 260px) !important;
+  }
+
+  .editor-page .stickers-grid {
+    width: 100%;
+    max-width: 280px;
+    margin-left: auto;
+    margin-right: auto;
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    gap: 8px !important;
+    padding: 12px !important;
+  }
+
+  .editor-page .sticker-item {
+    min-width: 0;
+    font-size: 1.85rem !important;
+  }
+
+  .editor-page .tool-actions {
+    grid-template-columns: 1fr;
+  }
+
+  .editor-page .complete-btn {
+    font-size: 1.55rem !important;
+  }
+
+  .content,
+  .preview-content {
+    flex-direction: column !important;
+    gap: 18px !important;
+  }
+
+  .search-container {
+    position: static !important;
+    margin-bottom: 14px;
+  }
+
+  .search-input {
+    width: min(100%, 220px) !important;
+  }
+
+  .point-display {
+    position: static !important;
+    display: inline-flex;
+    margin-bottom: 12px;
+  }
+
+  .gallery-summary {
+    position: static;
+    margin: 0 0 12px;
+    flex-direction: column;
+  }
+
+  .gallery-container {
+    position: static !important;
+    max-height: none;
+    overflow: visible;
+  }
+
+  .upload-btn-container {
+    position: static !important;
+    transform: none !important;
+    margin: 16px 0;
+  }
+
+  .gallery {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+}

@@ -26,7 +26,6 @@
       min-height: 100vh;
       margin: 0;
       padding: 20px 12px 12px 12px;
-      /* 상단 여백 ↓ 줄임 */
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -39,7 +38,6 @@
       font-weight: 800;
       color: #2f8d7d;
       margin: 0 0 10px 0;
-      /* 위 여백 제거 */
       text-align: center;
       line-height: 1;
     }
@@ -111,16 +109,50 @@
       display: flex;
       align-items: center;
       justify-content: center;
+      font-size: 1.2rem;
+    }
+
+    .search-btn:hover {
+      background: #3b8379;
+    }
+
+    .clear-search-btn {
+      background: #7cb8ac;
+      color: #fff;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 20px;
+      cursor: pointer;
+      font-size: 1.1rem;
+      display: none;
+    }
+
+    .clear-search-btn.show {
+      display: block;
+    }
+
+    .clear-search-btn:hover {
+      background: #6aa899;
     }
 
     .point-display {
       position: absolute;
       top: 20px;
-      right: 48px;
+      right: 80px;
       font-size: 1.85rem;
       font-weight: 700;
       color: #2f7a68;
       z-index: 20;
+      cursor: pointer;
+      transition: all 0.2s;
+      padding: 8px 16px;
+      border-radius: 25px;
+      background: rgba(255, 255, 255, 0.7);
+    }
+
+    .point-display:hover {
+      background: rgba(74, 155, 142, 0.2);
+      transform: scale(1.05);
     }
 
     /* 갤러리 */
@@ -182,13 +214,12 @@
       object-fit: cover;
     }
 
-    /* 업로드 버튼 (조금 위로 올림) */
+    /* 업로드 버튼 */
     .upload-btn-container {
       position: absolute;
       left: 50%;
       transform: translateX(-50%);
       bottom: 40px;
-      /* ↑ 원래 18px → 40px로 변경 */
       z-index: 30;
       text-align: center;
     }
@@ -203,6 +234,7 @@
       border: none;
       cursor: pointer;
       box-shadow: 0 8px 20px rgba(74, 155, 142, 0.16);
+      transition: all 0.2s;
     }
 
     .upload-btn:hover {
@@ -224,6 +256,11 @@
         padding: 10px 32px;
         font-size: 1.25rem;
       }
+
+      .point-display {
+        font-size: 1.5rem;
+        right: 70px;
+      }
     }
 
     @media (max-width: 600px) {
@@ -239,11 +276,27 @@
       .upload-btn-container {
         bottom: 28px;
       }
+
+      .point-display {
+        font-size: 1.3rem;
+        right: 60px;
+        top: 22px;
+      }
+
+      .search-container {
+        flex-wrap: wrap;
+      }
+
+      .search-input {
+        width: 180px;
+        font-size: 1rem;
+      }
     }
   </style>
+  <link rel="stylesheet" href="app.css">
 </head>
 
-<body>
+<body class="gallery-page">
   <button class="logout-btn" onclick="handleLogout()">
     <img src="logout.png" alt="로그아웃">
   </button>
@@ -257,10 +310,17 @@
       <button class="clear-search-btn" id="clearSearchBtn" onclick="clearSearch()">전체보기</button>
     </div>
 
-    <span class="point-display">포인트 : <span id="user-points">0</span></span>
+    <div class="point-display" onclick="goToPointPage()" title="클릭해서 포인트 모으기!">
+      포인트 : <span id="user-points">0</span> ✨
+    </div>
 
     <div class="upload-btn-container">
       <button class="upload-btn">사진 업로드</button>
+    </div>
+
+    <div class="gallery-summary" id="gallerySummary" aria-live="polite">
+      <span id="galleryCount">사진을 불러오는 중...</span>
+      <span id="galleryHint">최근 업로드 순</span>
     </div>
 
     <section class="gallery-container">
@@ -292,7 +352,18 @@
           handleSearch();
         }
       });
+
+      searchInput.addEventListener('input', () => {
+        if (!searchInput.value.trim() && isSearching) {
+          clearSearch();
+        }
+      });
     });
+
+    // 포인트 페이지로 이동
+    function goToPointPage() {
+      window.location.href = 'point.html';
+    }
 
     // 서버에서 사용자 포인트를 불러와 표시
     async function loadUserPoints() {
@@ -315,14 +386,14 @@
     // 서버에서 현재 사용자의 사진 목록을 불러오는 함수
     async function loadUserPhotos() {
       const gallery = document.getElementById('userGallery');
-      gallery.innerHTML = '';
+      renderGalleryMessage('사진을 불러오는 중입니다...');
 
       try {
         const response = await fetch('/api/photos/me');
 
         if (!response.ok) {
           const errorData = await response.json();
-          gallery.innerHTML = `<p style="grid-column: 1 / -1; text-align: center; font-size: 20px; color: #cc5555;">${errorData.error || '사진 로드 실패'}</p>`;
+          renderGalleryMessage(errorData.error || '사진 로드 실패');
           return;
         }
 
@@ -333,7 +404,7 @@
 
       } catch (error) {
         console.error('사진 목록 조회 오류:', error);
-        gallery.innerHTML = '<p style="grid-column: 1 / -1; text-align: center; font-size: 20px; color: #cc5555;">사진 로드 중 네트워크 오류가 발생했습니다.</p>';
+        renderGalleryMessage('사진 로드 중 네트워크 오류가 발생했습니다.');
       }
     }
 
@@ -341,28 +412,78 @@
     function displayPhotos(photos) {
       const gallery = document.getElementById('userGallery');
       gallery.innerHTML = '';
+      setGallerySummary(photos.length);
 
       if (photos.length === 0) {
         const message = isSearching ? '검색 결과가 없습니다.' : '아직 등록된 사진이 없습니다. 사진을 업로드해보세요!';
-        gallery.innerHTML = `<p style="grid-column: 1 / -1; text-align: center; font-size: 20px; color: #555;">${message}</p>`;
+        renderGalleryMessage(message);
         return;
       }
 
       photos.forEach(photo => {
         const itemDiv = document.createElement('div');
         itemDiv.className = 'image-item';
+        itemDiv.tabIndex = 0;
+        itemDiv.setAttribute('role', 'button');
+        itemDiv.setAttribute('aria-label', `${photo.memo || '사진'} 상세보기`);
 
         const img = document.createElement('img');
         img.src = photo.imageUrl;
         img.alt = photo.memo || '사용자 사진';
+        img.loading = 'lazy';
+
+        const meta = document.createElement('div');
+        meta.className = 'photo-card-meta';
+
+        const title = document.createElement('div');
+        title.className = 'photo-card-title';
+        title.textContent = photo.memo || '메모 없음';
+
+        const date = document.createElement('div');
+        date.className = 'photo-card-date';
+        date.textContent = formatPhotoDate(photo.created_at);
+
+        meta.appendChild(title);
+        meta.appendChild(date);
 
         itemDiv.addEventListener('click', () => {
           window.location.href = `check.html?photoId=${photo.id}`;
         });
+        itemDiv.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            window.location.href = `check.html?photoId=${photo.id}`;
+          }
+        });
 
         itemDiv.appendChild(img);
+        itemDiv.appendChild(meta);
         gallery.appendChild(itemDiv);
       });
+    }
+
+    function renderGalleryMessage(message) {
+      const gallery = document.getElementById('userGallery');
+      gallery.innerHTML = '';
+      const state = document.createElement('div');
+      state.className = 'state-message';
+      state.textContent = message;
+      gallery.appendChild(state);
+      setGallerySummary(0);
+    }
+
+    function setGallerySummary(count) {
+      const countEl = document.getElementById('galleryCount');
+      const hintEl = document.getElementById('galleryHint');
+      countEl.textContent = isSearching ? `검색 결과 ${count}장` : `내 사진 ${count}장`;
+      hintEl.textContent = isSearching ? '메모 검색 중' : '최근 업로드 순';
+    }
+
+    function formatPhotoDate(value) {
+      if (!value) return '날짜 없음';
+      const date = new Date(value);
+      if (Number.isNaN(date.getTime())) return '날짜 없음';
+      return `${date.getFullYear()}.${date.getMonth() + 1}.${date.getDate()}`;
     }
 
     // 검색 처리
