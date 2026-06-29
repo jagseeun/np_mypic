@@ -246,6 +246,13 @@
             </div>
 
             <div class="decoration-section">
+                <div class="decoration-summary">
+                    <div class="price-info">
+                        가격 : <span id="totalPrice">0</span>
+                    </div>
+                    <div class="sticker-status" id="stickerStatus" hidden></div>
+                </div>
+
                 <div class="stickers-grid" id="stickersGrid">
                     <div class="sticker-item" data-emoji="🎀" onclick="selectSticker(this)">🎀</div>
                     <div class="sticker-item" data-emoji="👍" onclick="selectSticker(this)">👍</div>
@@ -256,22 +263,18 @@
                     <div class="sticker-item" data-emoji="💩" onclick="selectSticker(this)">💩</div>
                     <div class="sticker-item" data-emoji="🖤" onclick="selectSticker(this)">🖤</div>
                 </div>
-                
-                <div class="price-info">
-                    가격 : <span id="totalPrice">0</span>
-                </div>
 
                 <div class="tool-actions">
                     <button type="button" class="tool-btn" id="undoBtn" onclick="undoLastSticker()" disabled>되돌리기</button>
                     <button type="button" class="tool-btn" id="clearBtn" onclick="clearNewStickers()" disabled>새 스티커 지우기</button>
                 </div>
 
-                <div class="sticker-status" id="stickerStatus">새 스티커 0개</div>
                 <button class="complete-btn" id="completeBtn" onclick="completeDecoration()">완료</button>
             </div>
         </div>
     </div>
 
+    <script src="ui.js"></script>
     <script>
         let selectedSticker = null;
         let currentPoints = 0;
@@ -287,8 +290,8 @@
             photoId = urlParams.get('photoId');
 
             if (!photoId) {
-                alert('잘못된 접근입니다.');
-                window.history.back();
+                await appAlert('잘못된 접근입니다.', { title: '접근 오류', variant: 'error' });
+                appNavigate('gallery.html', { replace: true });
                 return;
             }
 
@@ -390,16 +393,13 @@
             document.querySelectorAll('.sticker-item').forEach(el => el.classList.remove('selected'));
             element.classList.add('selected');
             selectedSticker = element.dataset.emoji;
-            const item = stickerItems[selectedSticker];
-            const status = item ? `${item.name} 선택됨 · ${item.price}P` : '스티커 선택됨';
-            document.getElementById('stickerStatus').textContent = status;
         }
 
         // 이미지 컨테이너 클릭 시 스티커 추가
         document.addEventListener('DOMContentLoaded', () => {
             const container = document.getElementById('imageContainer');
             
-            container.addEventListener('click', (e) => {
+            container.addEventListener('click', async (e) => {
                 // 스티커나 핸들 클릭 시 무시
                 if (e.target.classList.contains('placed-sticker') || 
                     e.target.classList.contains('resize-handle')) {
@@ -407,7 +407,7 @@
                 }
                 
                 if (!selectedSticker) {
-                    alert('먼저 스티커를 선택해주세요!');
+                    await appAlert('먼저 스티커를 선택해주세요.', { title: '스티커 선택' });
                     return;
                 }
 
@@ -513,9 +513,9 @@
             });
 
             // 더블클릭으로 삭제
-            sticker.addEventListener('dblclick', (e) => {
+            sticker.addEventListener('dblclick', async (e) => {
                 e.stopPropagation();
-            if (confirm('스티커를 삭제하시겠습니까?')) {
+                if (await appConfirm('스티커를 삭제하시겠습니까?', { title: '스티커 삭제', confirmText: '삭제' })) {
                     stickerHistory = stickerHistory.filter(item => item !== sticker);
                     sticker.remove();
                     updateTotalPrice();
@@ -565,9 +565,10 @@
 
             undoBtn.disabled = newStickers.length === 0;
             clearBtn.disabled = newStickers.length === 0;
+            status.hidden = newStickers.length === 0;
             status.textContent = newStickers.length > 0
                 ? `새 스티커 ${newStickers.length}개 · ${total}P`
-                : '새 스티커 0개';
+                : '';
         }
 
         function undoLastSticker() {
@@ -582,10 +583,10 @@
             updateTotalPrice();
         }
 
-        function clearNewStickers() {
+        async function clearNewStickers() {
             const newStickers = getNewStickers();
             if (newStickers.length === 0) return;
-            if (!confirm('새로 추가한 스티커를 모두 지울까요?')) return;
+            if (!(await appConfirm('새로 추가한 스티커를 모두 지울까요?', { title: '스티커 지우기', confirmText: '지우기' }))) return;
 
             newStickers.forEach(sticker => sticker.remove());
             stickerHistory = [];
@@ -597,16 +598,16 @@
             const totalPrice = updateTotalPrice();
             
             if (totalPrice > currentPoints) {
-                alert('포인트가 부족합니다!');
+                await appAlert('포인트가 부족합니다.', { title: '포인트 부족', variant: 'error' });
                 return;
             }
 
             if (totalPrice === 0) {
-                alert('스티커를 추가해주세요!');
+                await appAlert('스티커를 추가해주세요.', { title: '저장할 내용 없음' });
                 return;
             }
 
-            if (!confirm(`${totalPrice}P를 사용하여 스티커를 추가하시겠습니까?`)) {
+            if (!(await appConfirm(`${totalPrice}P를 사용하여 스티커를 추가하시겠습니까?`, { title: '꾸미기 저장', confirmText: '저장' }))) {
                 return;
             }
 
@@ -648,27 +649,28 @@
                 }
 
                 const result = await res.json();
-                alert(`꾸미기 완료!\n사용 포인트: ${totalPrice}P\n남은 포인트: ${result.remainingPoints}P`);
+                await appAlert(`사용 포인트: ${totalPrice}P\n남은 포인트: ${result.remainingPoints}P`, { title: '꾸미기 완료', variant: 'success' });
                 
-                setTimeout(() => {
-                    window.location.href = `check.html?photoId=${photoId}`;
-                }, 1000);
+                appNavigate(`detail.html?photoId=${photoId}`);
 
             } catch (err) {
                 console.error('완료 오류:', err);
-                alert('저장 중 오류가 발생했습니다: ' + err.message);
+                await appAlert('저장 중 오류가 발생했습니다: ' + err.message, { title: '저장 실패', variant: 'error' });
                 btn.disabled = false;
                 btn.textContent = '완료';
             }
         }
 
-        function showInfo() {
-            alert('💡 사용법\n\n1. 스티커를 선택하고 사진을 클릭하세요\n2. 스티커를 드래그하여 위치 조정\n3. 오른쪽 아래 동그라미를 드래그하여 크기 조정\n4. 더블클릭으로 스티커 삭제');
+        async function showInfo() {
+            await appAlert('1. 스티커를 선택하고 사진을 클릭하세요.\n2. 스티커를 드래그해서 위치를 조정하세요.\n3. 오른쪽 아래 핸들로 크기를 조정하세요.\n4. 더블클릭하면 스티커를 삭제할 수 있습니다.', {
+                title: '꾸미기 도움말',
+                confirmText: '닫기'
+            });
         }
 
-        function goBack() {
-            if (confirm('꾸미기를 취소하시겠습니까?')) {
-                window.location.href = './main.html';
+        async function goBack() {
+            if (await appConfirm('꾸미기를 취소하시겠습니까?', { title: '나가기', confirmText: '나가기' })) {
+                appNavigate('./gallery.html');
             }
         }
     </script>

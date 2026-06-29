@@ -61,12 +61,13 @@ NODE_ENV=development
 ├── package.json           # 실행 스크립트와 의존성
 ├── np_mypic/
 │   ├── index.html         # 로그인/회원가입
-│   ├── main.html          # 갤러리 메인
-│   ├── test.html          # 사진 업로드
-│   ├── check.html         # 사진 상세 보기
+│   ├── gallery.html       # 갤러리 메인
+│   ├── upload.html        # 사진 업로드
+│   ├── detail.html        # 사진 상세 보기
 │   ├── decorate.html      # 사진 꾸미기
-│   ├── memo.html          # 메모 수정
-│   ├── point.html         # 포인트 적립
+│   ├── edit-memo.html     # 메모 수정
+│   ├── points.html        # 포인트 적립
+│   ├── ui.js              # 공통 모달
 │   └── app.css            # 공통 스타일
 ├── screenshots/           # 화면 캡처 이미지
 └── uploads/               # 로컬 업로드 보관용 폴더

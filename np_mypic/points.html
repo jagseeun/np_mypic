@@ -183,6 +183,7 @@
         +1 포인트 획득! 🎊
     </div>
 
+    <script src="ui.js"></script>
     <script>
         let clickCount = 0;
         let currentPoints = 0;
@@ -272,11 +273,11 @@
                     showSuccessMessage();
                 } else {
                     const error = await res.json();
-                    alert(error.error || '포인트 적립 실패');
+                    await appAlert(error.error || '포인트 적립 실패', { title: '적립 실패', variant: 'error' });
                 }
             } catch (err) {
                 console.error('포인트 적립 오류:', err);
-                alert('포인트 적립 중 오류가 발생했습니다.');
+                await appAlert('포인트 적립 중 오류가 발생했습니다.', { title: '적립 실패', variant: 'error' });
             }
         }
 
@@ -301,7 +302,7 @@
 
         // 뒤로가기
         function goBack() {
-            window.location.href = 'main.html';
+            appNavigate('gallery.html');
         }
     </script>
 </body>

@@ -230,6 +230,7 @@
         </div>
     </div>
 
+    <script src="ui.js"></script>
     <script>
         let photoId = null;
         let currentPoints = 0;
@@ -241,8 +242,8 @@
             photoId = urlParams.get('photoId');
 
             if (!photoId) {
-                alert('잘못된 접근입니다.');
-                window.history.back();
+                await appAlert('잘못된 접근입니다.', { title: '접근 오류', variant: 'error' });
+                appNavigate('gallery.html', { replace: true });
                 return;
             }
 
@@ -338,17 +339,17 @@
 
         // 꾸미기 페이지로 이동
         function goToDecorate() {
-            window.location.href = `decorate.html?photoId=${photoId}`;
+            appNavigate(`decorate.html?photoId=${photoId}`);
         }
 
         // 메모 수정 페이지로 이동
         function goToMemo() {
-            window.location.href = `memo.html?photoId=${photoId}`;
+            appNavigate(`edit-memo.html?photoId=${photoId}`);
         }
 
         // 뒤로가기
         function goBack() {
-            window.location.href = './main.html';
+            appNavigate('./gallery.html');
         }
 
         // 로그아웃
@@ -356,8 +357,8 @@
             try {
                 const res = await fetch('/logout', { method: 'POST' });
                 if (res.ok) {
-                    alert('로그아웃 되었습니다.');
-                    window.location.href = 'index.html';
+                    await appAlert('로그아웃 되었습니다.', { title: '로그아웃', variant: 'success' });
+                    appNavigate('index.html', { replace: true });
                 }
             } catch (err) {
                 console.error('로그아웃 오류:', err);

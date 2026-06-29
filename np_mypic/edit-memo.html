@@ -244,6 +244,7 @@
         </div>
     </div>
 
+    <script src="ui.js"></script>
     <script>
         let photoId = null;
         let stickerItems = {};
@@ -254,8 +255,8 @@
             photoId = urlParams.get('photoId');
 
             if (!photoId) {
-                alert('잘못된 접근입니다.');
-                window.history.back();
+                await appAlert('잘못된 접근입니다.', { title: '접근 오류', variant: 'error' });
+                appNavigate('gallery.html', { replace: true });
                 return;
             }
 
@@ -363,21 +364,21 @@
                     throw new Error(error.error || '저장 실패');
                 }
 
-                alert('메모가 수정되었습니다!');
-                window.location.href = `check.html?photoId=${photoId}`;
+                await appAlert('메모가 수정되었습니다.', { title: '저장 완료', variant: 'success' });
+                appNavigate(`detail.html?photoId=${photoId}`);
 
             } catch (err) {
                 console.error('메모 저장 오류:', err);
-                alert('메모 저장 중 오류가 발생했습니다: ' + err.message);
+                await appAlert('메모 저장 중 오류가 발생했습니다: ' + err.message, { title: '저장 실패', variant: 'error' });
                 saveBtn.disabled = false;
                 saveBtn.textContent = '저장';
             }
         }
 
         // 뒤로가기
-        function goBack() {
-            if (confirm('수정을 취소하시겠습니까?')) {
-                window.location.href = `check.html?photoId=${photoId}`;
+        async function goBack() {
+            if (await appConfirm('수정을 취소하시겠습니까?', { title: '나가기', confirmText: '나가기' })) {
+                appNavigate(`detail.html?photoId=${photoId}`);
             }
         }
     </script>

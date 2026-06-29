@@ -49,7 +49,6 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true })); 
 
 // 정적 파일 제공 (HTML, CSS, JS 등)
-app.use(express.static("np_mypic")); 
 
 // 세션 미들웨어 설정 (로그인 상태 유지)
 app.use(session({
@@ -62,6 +61,60 @@ app.use(session({
         sameSite: 'lax',
         secure: isProduction,
         maxAge: 1000 * 60 * 60 * 24 // 쿠키 유효기간 24시간
+    }
+}));
+
+const protectedPages = new Set([
+    "/gallery.html",
+    "/upload.html",
+    "/detail.html",
+    "/decorate.html",
+    "/edit-memo.html",
+    "/points.html",
+    "/main.html",
+    "/test.html",
+    "/check.html",
+    "/memo.html",
+    "/point.html"
+]);
+
+const legacyPageRedirects = {
+    "/main.html": "/gallery.html",
+    "/test.html": "/upload.html",
+    "/check.html": "/detail.html",
+    "/memo.html": "/edit-memo.html",
+    "/point.html": "/points.html"
+};
+
+const preventHtmlCache = (res) => {
+    res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, private");
+    res.setHeader("Pragma", "no-cache");
+    res.setHeader("Expires", "0");
+};
+
+app.use((req, res, next) => {
+    if (req.method === "GET" && req.path.endsWith(".html")) {
+        preventHtmlCache(res);
+    }
+
+    if (req.method === "GET" && legacyPageRedirects[req.path]) {
+        const queryIndex = req.originalUrl.indexOf("?");
+        const query = queryIndex >= 0 ? req.originalUrl.slice(queryIndex) : "";
+        return res.redirect(302, legacyPageRedirects[req.path] + query);
+    }
+
+    if (req.method === "GET" && protectedPages.has(req.path) && !req.session.userId) {
+        return res.redirect(302, "/index.html");
+    }
+
+    next();
+});
+
+app.use(express.static("np_mypic", {
+    setHeaders: (res, filePath) => {
+        if (filePath.endsWith(".html")) {
+            preventHtmlCache(res);
+        }
     }
 }));
 

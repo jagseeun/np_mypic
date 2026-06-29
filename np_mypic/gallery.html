@@ -328,6 +328,7 @@
     </section>
   </div>
 
+  <script src="ui.js"></script>
   <script>
     let allPhotos = []; // 전체 사진 목록 저장
     let isSearching = false; // 검색 상태 추적
@@ -343,7 +344,7 @@
 
       // 업로드 버튼
       uploadBtn.addEventListener('click', () => {
-        location.href = "./test.html";
+        appNavigate("./upload.html");
       });
 
       // 엔터키로 검색
@@ -362,7 +363,7 @@
 
     // 포인트 페이지로 이동
     function goToPointPage() {
-      window.location.href = 'point.html';
+      appNavigate('points.html');
     }
 
     // 서버에서 사용자 포인트를 불러와 표시
@@ -447,12 +448,12 @@
         meta.appendChild(date);
 
         itemDiv.addEventListener('click', () => {
-          window.location.href = `check.html?photoId=${photo.id}`;
+          appNavigate(`detail.html?photoId=${photo.id}`);
         });
         itemDiv.addEventListener('keydown', (e) => {
           if (e.key === 'Enter' || e.key === ' ') {
             e.preventDefault();
-            window.location.href = `check.html?photoId=${photo.id}`;
+            appNavigate(`detail.html?photoId=${photo.id}`);
           }
         });
 
@@ -493,7 +494,7 @@
       const clearBtn = document.getElementById('clearSearchBtn');
 
       if (!searchKeyword) {
-        alert('검색어를 입력해주세요.');
+        await appAlert('검색어를 입력해주세요.', { title: '검색어 없음' });
         return;
       }
 
@@ -511,7 +512,7 @@
 
       } catch (error) {
         console.error('검색 오류:', error);
-        alert('검색 중 오류가 발생했습니다.');
+        await appAlert('검색 중 오류가 발생했습니다.', { title: '검색 실패', variant: 'error' });
       }
     }
 
@@ -531,14 +532,14 @@
       try {
         const response = await fetch('/logout', { method: 'POST' });
         if (response.ok) {
-          alert('로그아웃 되었습니다.');
-          window.location.href = 'index.html';
+          await appAlert('로그아웃 되었습니다.', { title: '로그아웃', variant: 'success' });
+          appNavigate('index.html', { replace: true });
         } else {
-          alert('로그아웃에 실패했습니다.');
+          await appAlert('로그아웃에 실패했습니다.', { title: '로그아웃 실패', variant: 'error' });
         }
       } catch (error) {
         console.error('로그아웃 요청 오류:', error);
-        alert('로그아웃 중 네트워크 오류가 발생했습니다.');
+        await appAlert('로그아웃 중 네트워크 오류가 발생했습니다.', { title: '네트워크 오류', variant: 'error' });
       }
     }
   </script>
