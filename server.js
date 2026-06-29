@@ -322,7 +322,7 @@ app.get("/api/photos/search", async (req, res) => {
 // 사진 업로드
 app.post("/upload", uploadSinglePhoto, async (req, res) => {
     const userId = req.session.userId; 
-    const memo = req.body.memo || null; // 메모는 선택사항
+    const memo = (req.body && req.body.memo) || null; // 메모는 선택사항
     
     // 로그인 안되어있으면 업로드 불가
     if (!userId) {
