@@ -1,0 +1,44 @@
+services:
+  db:
+    image: mysql:8.0
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: mypic
+      MYSQL_USER: mypic
+      MYSQL_PASSWORD: mypic_password
+      MYSQL_ROOT_PASSWORD: root_password
+      TZ: Asia/Seoul
+    ports:
+      - "3308:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+      - ./schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -umypic -pmypic_password --silent"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+
+  app:
+    build: .
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      NODE_ENV: development
+      PORT: 5000
+      DB_HOST: db
+      DB_PORT: 3306
+      DB_USER: mypic
+      DB_PASSWORD: mypic_password
+      DB_NAME: mypic
+      SESSION_SECRET: local_docker_session_secret_change_me
+    ports:
+      - "5050:5000"
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  mysql-data:

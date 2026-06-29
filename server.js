@@ -1,10 +1,8 @@
 const express = require("express");
 const multer = require("multer");
 const streamifier = require("streamifier");
-const mysql = require("mysql2"); 
 const bcrypt = require('bcrypt'); 
 const session = require('express-session'); 
-const MySQLStore = require('express-mysql-session')(session);
 const dotenv = require("dotenv");
 const { v2: cloudinary } = require("cloudinary");
 
@@ -19,6 +17,7 @@ cloudinary.config({
 const app = express();
 const isProduction = process.env.NODE_ENV === 'production';
 const sessionSecret = process.env.SESSION_SECRET || 'dev_secret_key_for_mypic';
+const { db, sessionStore, initializeDatabase } = require("./db");
 
 if (isProduction) {
     app.set('trust proxy', 1);
@@ -32,17 +31,7 @@ if (!isProduction && !process.env.SESSION_SECRET) {
     console.warn("SESSION_SECRET이 설정되지 않아 개발용 기본값을 사용합니다.");
 }
 
-// MySQL DB 연결 풀 생성
-const db = mysql.createPool({
-  host: process.env.DB_HOST || '127.0.0.1',
-  user: process.env.DB_USER || 'root',
-  password: process.env.DB_PASSWORD || '0000',
-  database: process.env.DB_NAME || 'mypic',
-  port: Number(process.env.DB_PORT || 3307)
-});
-
-// 세션 데이터를 MySQL에 저장하기 위한 스토어
-const sessionStore = new MySQLStore({}, db.promise());
+// DB and session store are selected in db.js.
 
 // JSON, URL-encoded 데이터 파싱 (요청 본문 읽기용)
 app.use(express.json()); 
@@ -659,6 +648,13 @@ app.post("/api/points/earn", async (req, res) => {
 });
 // 서버 시작
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-  console.log(`✅ 서버 실행 중: http://localhost:${PORT}`);
-});
+initializeDatabase()
+    .then(() => {
+        app.listen(PORT, () => {
+          console.log(`✅ 서버 실행 중: http://localhost:${PORT}`);
+        });
+    })
+    .catch((error) => {
+        console.error("DB initialization failed:", error);
+        process.exit(1);
+    });

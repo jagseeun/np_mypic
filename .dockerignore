@@ -1,0 +1,13 @@
+.git
+.vscode
+.agents
+node_modules
+npm-debug.log*
+*.log
+.env
+.env.*
+!.env.example
+screenshots
+uploads
+.chrome-measure-*
+.chrome-measure-all-*
