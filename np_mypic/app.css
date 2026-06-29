@@ -10,39 +10,12 @@
   --mypic-shadow: 0 14px 34px rgba(38, 50, 63, 0.13);
 }
 
-/* Header actions should live with the logo, not at the viewport edge. */
 .detail-page .header .title,
 .editor-page .header .title,
 .memo-page .header .title,
 .point-page .header .title,
 .upload-page .header .title {
   pointer-events: auto !important;
-}
-
-.detail-page .header .logout-btn,
-.upload-page .header .logout-btn {
-  position: static !important;
-  top: auto !important;
-  right: auto !important;
-  grid-column: 3 !important;
-  justify-self: end !important;
-  align-self: start !important;
-  width: 52px !important;
-  height: 52px !important;
-  min-width: 52px !important;
-  min-height: 52px !important;
-  pointer-events: auto !important;
-  z-index: 25 !important;
-}
-
-@media (max-width: 760px) {
-  .detail-page .header .logout-btn,
-  .upload-page .header .logout-btn {
-    width: 40px !important;
-    height: 40px !important;
-    min-width: 40px !important;
-    min-height: 40px !important;
-  }
 }
 
 html {
@@ -3251,5 +3224,254 @@ body {
     font-size: 0.9rem !important;
     line-height: 1.25 !important;
     text-align: center !important;
+  }
+}
+
+/* Final overrides: keep shared controls consistent after all page-specific rules. */
+.logout-btn,
+.detail-page .header .logout-btn,
+.upload-page .header .logout-btn {
+  position: fixed !important;
+  top: 20px !important;
+  right: 20px !important;
+  width: 52px !important;
+  height: 52px !important;
+  min-width: 52px !important;
+  min-height: 52px !important;
+  z-index: 1000 !important;
+  pointer-events: auto !important;
+}
+
+.memo-page .container {
+  width: min(900px, calc(100vw - 48px)) !important;
+  height: min(565px, calc(100dvh - var(--page-logo-bottom) - 28px)) !important;
+  padding: 72px 30px 30px !important;
+}
+
+.memo-page .content {
+  height: 100% !important;
+  min-height: 0 !important;
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) 340px !important;
+  align-items: stretch !important;
+  gap: 28px !important;
+  margin: 0 !important;
+}
+
+.memo-page .image-section {
+  min-height: 0 !important;
+  display: grid !important;
+  grid-template-rows: auto minmax(0, 1fr) !important;
+  align-content: stretch !important;
+}
+
+.memo-page .image-title {
+  max-width: 100% !important;
+  margin: 0 0 14px !important;
+  color: var(--mypic-ink) !important;
+  font-size: 1.45rem !important;
+  line-height: 1.15 !important;
+}
+
+.memo-page .image-preview {
+  width: min(100%, 390px) !important;
+  max-width: 390px !important;
+  align-self: center !important;
+  justify-self: center !important;
+  aspect-ratio: 1 / 1 !important;
+  margin: 0 !important;
+  border: 1px solid rgba(38, 50, 63, 0.12) !important;
+  border-radius: 8px !important;
+  background: rgba(255, 255, 255, 0.82) !important;
+  box-shadow: 0 10px 26px rgba(38, 50, 63, 0.1) !important;
+}
+
+.memo-page .edit-section {
+  min-height: 0 !important;
+  display: grid !important;
+  grid-template-rows: minmax(0, 1fr) auto !important;
+  gap: 14px !important;
+}
+
+.memo-page .form-group {
+  min-height: 0 !important;
+  display: grid !important;
+  grid-template-rows: auto minmax(0, 1fr) auto !important;
+  padding: 18px !important;
+  border: 1px solid rgba(74, 155, 142, 0.18) !important;
+  border-radius: 8px !important;
+  background: rgba(255, 255, 255, 0.64) !important;
+}
+
+.memo-page .form-label {
+  margin: 0 0 12px !important;
+  color: var(--mypic-mint-dark) !important;
+  font-size: 1.42rem !important;
+  line-height: 1.1 !important;
+}
+
+.memo-page .memo-input {
+  appearance: none !important;
+  resize: none !important;
+  width: 100% !important;
+  height: 100% !important;
+  min-height: 0 !important;
+  margin: 0 !important;
+  padding: 16px !important;
+  border: 0 !important;
+  border-radius: 8px !important;
+  background: rgba(255, 255, 255, 0.9) !important;
+  box-shadow: inset 0 0 0 1px rgba(74, 155, 142, 0.22) !important;
+  color: var(--mypic-ink) !important;
+  font-size: 1.24rem !important;
+  line-height: 1.42 !important;
+}
+
+.memo-page .memo-input:focus {
+  outline: 0 !important;
+  box-shadow:
+    inset 0 0 0 2px var(--mypic-mint),
+    0 0 0 4px rgba(74, 155, 142, 0.14) !important;
+}
+
+.memo-page .memo-input::placeholder {
+  color: rgba(102, 118, 128, 0.72) !important;
+}
+
+.memo-page .char-count {
+  justify-self: end !important;
+  margin: 10px 2px 0 0 !important;
+  color: var(--mypic-muted) !important;
+  font-size: 1rem !important;
+  line-height: 1 !important;
+}
+
+.memo-page .button-group {
+  display: grid !important;
+  grid-template-columns: 1fr 1fr !important;
+  gap: 12px !important;
+  margin: 0 !important;
+}
+
+.memo-page .btn {
+  min-width: 0 !important;
+  min-height: 54px !important;
+  padding: 0 18px !important;
+  border-radius: 999px !important;
+  display: grid !important;
+  place-items: center !important;
+  font-size: 1.32rem !important;
+  line-height: 1 !important;
+  box-shadow: none !important;
+}
+
+.memo-page .btn-cancel {
+  border: 1px solid rgba(38, 50, 63, 0.12) !important;
+  background: rgba(255, 255, 255, 0.74) !important;
+  color: var(--mypic-muted) !important;
+}
+
+.memo-page .btn-cancel:hover {
+  background: rgba(255, 255, 255, 0.92) !important;
+  color: var(--mypic-ink) !important;
+}
+
+.memo-page .btn-save {
+  background: var(--mypic-mint) !important;
+  color: #fff !important;
+}
+
+.memo-page .btn-save:hover:not(:disabled) {
+  background: var(--mypic-mint-dark) !important;
+}
+
+.upload-page #memoInput {
+  appearance: none !important;
+  resize: none !important;
+  border: 0 !important;
+  border-radius: 8px !important;
+  background: rgba(255, 255, 255, 0.9) !important;
+  box-shadow: inset 0 0 0 1px rgba(74, 155, 142, 0.22) !important;
+  color: var(--mypic-ink) !important;
+}
+
+.upload-page #memoInput:focus {
+  outline: 0 !important;
+  box-shadow:
+    inset 0 0 0 2px var(--mypic-mint),
+    0 0 0 4px rgba(74, 155, 142, 0.14) !important;
+}
+
+@media (max-width: 760px) {
+  .logout-btn,
+  .detail-page .header .logout-btn,
+  .upload-page .header .logout-btn {
+    top: 14px !important;
+    right: 12px !important;
+    width: 40px !important;
+    height: 40px !important;
+    min-width: 40px !important;
+    min-height: 40px !important;
+  }
+
+  .memo-page .container {
+    width: min(348px, calc(100vw - 28px)) !important;
+    height: min(610px, calc(100dvh - var(--page-logo-bottom) - 18px)) !important;
+    padding: 62px 16px 16px !important;
+  }
+
+  .memo-page .content {
+    grid-template-columns: 1fr !important;
+    grid-template-rows: auto minmax(0, 1fr) !important;
+    gap: 12px !important;
+  }
+
+  .memo-page .image-section {
+    grid-template-rows: auto auto !important;
+  }
+
+  .memo-page .image-title {
+    margin-bottom: 8px !important;
+    font-size: 1.08rem !important;
+  }
+
+  .memo-page .image-preview {
+    width: min(100%, 210px) !important;
+    max-width: 210px !important;
+  }
+
+  .memo-page .edit-section {
+    gap: 12px !important;
+  }
+
+  .memo-page .form-group {
+    padding: 14px !important;
+  }
+
+  .memo-page .form-label {
+    margin-bottom: 8px !important;
+    font-size: 1.12rem !important;
+  }
+
+  .memo-page .memo-input {
+    min-height: 118px !important;
+    padding: 13px !important;
+    font-size: 1.02rem !important;
+    line-height: 1.34 !important;
+  }
+
+  .memo-page .char-count {
+    margin-top: 8px !important;
+    font-size: 0.9rem !important;
+  }
+
+  .memo-page .button-group {
+    gap: 10px !important;
+  }
+
+  .memo-page .btn {
+    min-height: 46px !important;
+    padding: 0 12px !important;
+    font-size: 1.06rem !important;
   }
 }
