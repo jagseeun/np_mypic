@@ -52,6 +52,36 @@ button:disabled {
   text-shadow: 0 2px 0 rgba(255, 255, 255, 0.65);
 }
 
+.auth-brand,
+.gallery-page .main-title,
+.upload-page .header .title,
+.detail-page .header .title,
+.editor-page .header .title,
+.memo-page .header .title,
+.point-page .header .title,
+.points-display,
+.point-display {
+  cursor: pointer;
+}
+
+.auth-brand:focus-visible,
+.gallery-page .main-title:focus-visible,
+.upload-page .header .title:focus-visible,
+.detail-page .header .title:focus-visible,
+.editor-page .header .title:focus-visible,
+.memo-page .header .title:focus-visible,
+.point-page .header .title:focus-visible,
+.points-display:focus-visible,
+.point-display:focus-visible {
+  outline: 3px solid rgba(74, 155, 142, 0.34);
+  outline-offset: 5px;
+}
+
+.points-display:focus-visible,
+.point-display:focus-visible {
+  border-radius: 999px;
+}
+
 .container {
   border: 1px solid var(--mypic-line);
   border-radius: 8px !important;
