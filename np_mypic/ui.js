@@ -1,9 +1,20 @@
 (() => {
   const rootId = 'appModalRoot';
+  const backGuardPages = [
+    'gallery-page',
+    'upload-page',
+    'detail-page',
+    'editor-page',
+    'memo-page',
+    'point-page'
+  ];
   let activeClose = null;
+  let backGuardReady = false;
+  let backNoticeOpen = false;
 
   function startPage() {
     document.documentElement.classList.add('page-ready');
+    installBackGuard();
     requestAnimationFrame(() => {
       document.body.classList.add('page-entered');
     });
@@ -20,6 +31,33 @@
         window.location.href = url;
       }
     }, 170);
+  }
+
+  function shouldGuardBack() {
+    return backGuardPages.some((pageClass) => document.body.classList.contains(pageClass));
+  }
+
+  function installBackGuard() {
+    if (backGuardReady || !shouldGuardBack() || !window.history?.pushState) return;
+
+    backGuardReady = true;
+    const currentState = history.state && typeof history.state === 'object' ? history.state : {};
+    history.replaceState({ ...currentState, mypicBackBase: true }, '', location.href);
+    history.pushState({ mypicBackGuard: true }, '', location.href);
+
+    window.addEventListener('popstate', () => {
+      history.pushState({ mypicBackGuard: true }, '', location.href);
+
+      if (backNoticeOpen) return;
+      backNoticeOpen = true;
+      openModal({
+        title: '뒤로가기 안내',
+        message: '브라우저 뒤로가기 대신 화면 안의 ← 버튼을 사용해주세요.',
+        confirmText: '확인'
+      }).finally(() => {
+        backNoticeOpen = false;
+      });
+    });
   }
 
   function ensureRoot() {
