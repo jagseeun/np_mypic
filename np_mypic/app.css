@@ -2385,3 +2385,151 @@ body {
     padding: 28px 20px !important;
   }
 }
+
+/* Unified app-page geometry: fixed logo, content centered below the logo. */
+.gallery-page,
+.detail-page,
+.editor-page,
+.memo-page,
+.point-page,
+.upload-page {
+  --page-logo-top: 18px;
+  --page-logo-bottom: 92px;
+  --page-logo-bottom-half: 46px;
+  position: relative !important;
+  min-height: 100dvh !important;
+  width: 100% !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+}
+
+.gallery-page .main-title,
+.detail-page .header,
+.editor-page .header,
+.memo-page .header,
+.point-page .header,
+.upload-page .header {
+  position: fixed !important;
+  top: var(--page-logo-top) !important;
+  left: 50% !important;
+  z-index: 20;
+  width: min(900px, calc(100vw - 48px)) !important;
+  height: calc(var(--page-logo-bottom) - var(--page-logo-top)) !important;
+  min-height: 0 !important;
+  margin: 0 !important;
+  transform: translateX(-50%) !important;
+}
+
+.gallery-page .main-title,
+.detail-page .title,
+.editor-page .title,
+.memo-page .title,
+.point-page .title,
+.upload-page .header .title,
+.upload-page .title {
+  margin: 0 !important;
+  font-size: 4.6rem !important;
+  line-height: 0.95 !important;
+  text-align: center !important;
+}
+
+.detail-page .header,
+.editor-page .header,
+.memo-page .header,
+.point-page .header,
+.upload-page .header {
+  display: grid !important;
+  grid-template-columns: 56px minmax(0, 1fr) 56px !important;
+  align-items: start !important;
+  pointer-events: none;
+}
+
+.detail-page .title,
+.editor-page .title,
+.memo-page .title,
+.point-page .title,
+.upload-page .title {
+  grid-column: 2 !important;
+  justify-self: center !important;
+}
+
+.gallery-page .container,
+.detail-page .container,
+.editor-page .container,
+.memo-page .container,
+.upload-page .container.upload-card {
+  position: absolute !important;
+  top: calc(50dvh + var(--page-logo-bottom-half)) !important;
+  left: 50% !important;
+  margin: 0 !important;
+  transform: translate(-50%, -50%) !important;
+  justify-self: auto !important;
+  align-self: auto !important;
+}
+
+.gallery-page .container {
+  height: min(650px, calc(100dvh - var(--page-logo-bottom) - 28px)) !important;
+}
+
+.detail-page .container,
+.memo-page .container {
+  height: min(565px, calc(100dvh - var(--page-logo-bottom) - 28px)) !important;
+}
+
+.editor-page .container {
+  height: min(620px, calc(100dvh - var(--page-logo-bottom) - 28px)) !important;
+}
+
+.upload-page .container.upload-card {
+  height: min(480px, calc(100dvh - var(--page-logo-bottom) - 28px)) !important;
+}
+
+.point-page .main-content {
+  position: absolute !important;
+  top: calc(50dvh + var(--page-logo-bottom-half)) !important;
+  left: 50% !important;
+  margin: 0 !important;
+  transform: translate(-50%, -50%) !important;
+}
+
+@media (max-width: 760px) {
+  .gallery-page,
+  .detail-page,
+  .editor-page,
+  .memo-page,
+  .point-page,
+  .upload-page {
+    --page-logo-top: 12px;
+    --page-logo-bottom: 70px;
+    --page-logo-bottom-half: 35px;
+  }
+
+  .gallery-page .main-title,
+  .detail-page .header,
+  .editor-page .header,
+  .memo-page .header,
+  .point-page .header,
+  .upload-page .header {
+    width: min(350px, calc(100vw - 28px)) !important;
+    grid-template-columns: 44px minmax(0, 1fr) 44px !important;
+  }
+
+  .gallery-page .main-title,
+  .detail-page .title,
+  .editor-page .title,
+  .memo-page .title,
+  .point-page .title,
+  .upload-page .header .title,
+  .upload-page .title {
+    font-size: 3.5rem !important;
+  }
+
+  .gallery-page .container,
+  .detail-page .container,
+  .editor-page .container,
+  .memo-page .container,
+  .upload-page .container.upload-card {
+    width: min(350px, calc(100vw - 28px)) !important;
+    height: min(620px, calc(100dvh - var(--page-logo-bottom) - 18px)) !important;
+  }
+}
