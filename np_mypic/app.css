@@ -2533,3 +2533,482 @@ body {
     height: min(620px, calc(100dvh - var(--page-logo-bottom) - 18px)) !important;
   }
 }
+
+/* Mobile polish pass: one shared geometry for every screen. */
+@media (max-width: 760px) {
+  .auth-page {
+    padding: 14px !important;
+    align-items: center !important;
+    justify-items: center !important;
+  }
+
+  .auth-shell {
+    min-height: calc(100dvh - 28px) !important;
+    width: 100% !important;
+  }
+
+  .auth-card {
+    width: min(340px, calc(100vw - 28px)) !important;
+    max-width: min(340px, calc(100vw - 28px)) !important;
+    padding: 30px 20px 26px !important;
+  }
+
+  .auth-brand {
+    margin-bottom: 24px !important;
+  }
+
+  .auth-page .title {
+    font-size: 3.25rem !important;
+  }
+
+  .auth-subtitle {
+    font-size: 1rem !important;
+    line-height: 1.35 !important;
+  }
+
+  .auth-form {
+    gap: 12px !important;
+  }
+
+  .auth-field {
+    gap: 6px !important;
+    font-size: 1rem !important;
+  }
+
+  .auth-page .input-field {
+    height: 52px !important;
+    font-size: 1.08rem !important;
+    padding: 11px 16px !important;
+  }
+
+  .auth-page .button-group {
+    grid-template-columns: 1fr !important;
+    gap: 10px !important;
+    margin-top: 12px !important;
+  }
+
+  .auth-page .btn {
+    height: 50px !important;
+    font-size: 1.18rem !important;
+    border-color: rgba(47, 122, 104, 0.2) !important;
+    box-shadow: none !important;
+  }
+
+  .gallery-page,
+  .detail-page,
+  .editor-page,
+  .memo-page,
+  .point-page,
+  .upload-page {
+    --page-logo-top: 12px;
+    --page-logo-bottom: 78px;
+    --page-logo-bottom-half: 39px;
+  }
+
+  .gallery-page .main-title,
+  .detail-page .header,
+  .editor-page .header,
+  .memo-page .header,
+  .point-page .header,
+  .upload-page .header {
+    width: min(350px, calc(100vw - 28px)) !important;
+    height: calc(var(--page-logo-bottom) - var(--page-logo-top)) !important;
+  }
+
+  .gallery-page .main-title,
+  .detail-page .title,
+  .editor-page .title,
+  .memo-page .title,
+  .point-page .title,
+  .upload-page .header .title,
+  .upload-page .title {
+    font-size: 3.25rem !important;
+    line-height: 0.95 !important;
+  }
+
+  .logout-btn {
+    top: 14px !important;
+    right: 12px !important;
+    width: 40px !important;
+    height: 40px !important;
+    box-shadow: none !important;
+  }
+
+  .gallery-page .container,
+  .detail-page .container,
+  .editor-page .container,
+  .memo-page .container,
+  .upload-page .container.upload-card {
+    top: calc(50dvh + var(--page-logo-bottom-half)) !important;
+    width: min(348px, calc(100vw - 28px)) !important;
+    height: min(610px, calc(100dvh - var(--page-logo-bottom) - 18px)) !important;
+    border-radius: 8px !important;
+    overflow: hidden !important;
+  }
+
+  .gallery-page .container {
+    padding: 16px 12px 12px !important;
+    display: grid !important;
+    grid-template-rows: auto auto auto minmax(0, 1fr) auto !important;
+    gap: 10px !important;
+  }
+
+  .gallery-page .search-container {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) 46px !important;
+    gap: 8px !important;
+    margin: 0 !important;
+  }
+
+  .gallery-page .search-input {
+    min-width: 0 !important;
+    height: 40px !important;
+    font-size: 0.98rem !important;
+  }
+
+  .gallery-page .search-btn {
+    width: 46px !important;
+    height: 40px !important;
+    min-width: 0 !important;
+  }
+
+  .gallery-page .point-display {
+    justify-self: start !important;
+    margin: 0 !important;
+    padding: 8px 12px !important;
+    font-size: 1.02rem !important;
+  }
+
+  .gallery-page .gallery-summary {
+    margin: 0 !important;
+    width: 100% !important;
+    font-size: 0.82rem !important;
+  }
+
+  .gallery-page .gallery-container {
+    min-height: 0 !important;
+    height: auto !important;
+    margin: 0 !important;
+  }
+
+  .gallery-page .upload-btn-container {
+    position: static !important;
+    justify-self: center !important;
+    margin: 8px 0 0 !important;
+  }
+
+  .gallery-page .upload-btn {
+    min-width: 150px !important;
+    min-height: 46px !important;
+    padding: 9px 24px !important;
+    font-size: 1.25rem !important;
+  }
+
+  .detail-page .container,
+  .editor-page .container,
+  .memo-page .container,
+  .upload-page .container.upload-card {
+    padding: 62px 16px 16px !important;
+  }
+
+  .detail-page .container > .back-btn,
+  .editor-page .container > .back-btn,
+  .memo-page .container > .back-btn,
+  .upload-page .container.upload-card > .back-btn,
+  .upload-page .back-to-select,
+  .point-page .back-btn {
+    top: 18px !important;
+    left: 18px !important;
+    width: 44px !important;
+    height: 44px !important;
+    box-shadow: 0 8px 16px rgba(38, 50, 63, 0.12) !important;
+  }
+
+  .detail-page .points-display,
+  .editor-page .points-display,
+  .point-page .points-display {
+    font-size: 0.98rem !important;
+    padding: 7px 14px !important;
+    min-height: 36px !important;
+  }
+
+  .detail-page .points-display,
+  .editor-page .points-display {
+    top: 28px !important;
+    left: 82px !important;
+    right: auto !important;
+  }
+
+  .detail-page .content,
+  .editor-page .content,
+  .memo-page .content {
+    height: 100% !important;
+    min-height: 0 !important;
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    align-content: stretch !important;
+    justify-items: stretch !important;
+    gap: 12px !important;
+    margin: 0 !important;
+    overflow: hidden !important;
+  }
+
+  .detail-page .image-section,
+  .editor-page .image-section,
+  .memo-page .image-section {
+    min-height: 0 !important;
+    display: grid !important;
+    align-content: center !important;
+    justify-items: center !important;
+  }
+
+  .detail-page .image-title,
+  .editor-page .image-title,
+  .memo-page .image-title {
+    font-size: 1.05rem !important;
+    line-height: 1.25 !important;
+    margin: 0 0 10px !important;
+  }
+
+  .detail-page .image-container,
+  .editor-page .image-container,
+  .memo-page .image-preview {
+    width: min(100%, 210px) !important;
+    max-width: 210px !important;
+    aspect-ratio: 1 / 1 !important;
+    margin: 0 auto !important;
+  }
+
+  .detail-page .image-container img,
+  .editor-page .image-container img,
+  .memo-page .image-preview img,
+  .upload-page #imagePreview {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: contain !important;
+  }
+
+  .detail-page .info-section,
+  .editor-page .decoration-section,
+  .memo-page .edit-section {
+    min-width: 0 !important;
+    width: 100% !important;
+    flex: none !important;
+  }
+
+  .detail-page .info-section {
+    display: grid !important;
+    grid-template-rows: minmax(0, 1fr) auto !important;
+    gap: 12px !important;
+    min-height: 0 !important;
+  }
+
+  .detail-page .info-box {
+    min-height: 0 !important;
+    padding: 16px !important;
+    overflow: hidden !important;
+  }
+
+  .detail-page .info-title,
+  .memo-page .form-label {
+    font-size: 1.35rem !important;
+    line-height: 1.2 !important;
+  }
+
+  .detail-page .info-item {
+    font-size: 1rem !important;
+    line-height: 1.35 !important;
+  }
+
+  .detail-page .action-btn,
+  .editor-page .complete-btn,
+  .memo-page .btn,
+  .upload-page #uploadFinalBtn {
+    min-height: 48px !important;
+    height: 48px !important;
+    padding: 9px 18px !important;
+    font-size: 1.22rem !important;
+    line-height: 1 !important;
+  }
+
+  .editor-page .content {
+    grid-template-rows: auto minmax(0, 1fr) auto !important;
+  }
+
+  .editor-page .decoration-section {
+    display: grid !important;
+    grid-template-rows: auto auto auto !important;
+    align-content: start !important;
+    gap: 10px !important;
+  }
+
+  .editor-page .decoration-summary {
+    margin: 0 !important;
+  }
+
+  .editor-page .price-info {
+    margin: 0 !important;
+    padding: 8px 12px !important;
+    font-size: 1.02rem !important;
+  }
+
+  .editor-page .stickers-grid {
+    width: 100% !important;
+    padding: 14px 16px !important;
+    gap: 12px !important;
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  }
+
+  .editor-page .sticker-item {
+    width: 42px !important;
+    height: 42px !important;
+    font-size: 1.65rem !important;
+  }
+
+  .editor-page .tool-actions {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 8px !important;
+    margin: 0 !important;
+  }
+
+  .editor-page .tool-btn {
+    min-height: 40px !important;
+    padding: 7px 10px !important;
+    font-size: 0.86rem !important;
+    line-height: 1.1 !important;
+  }
+
+  .editor-page .complete-btn {
+    width: 100% !important;
+    margin-top: 0 !important;
+  }
+
+  .memo-page .content {
+    grid-template-rows: auto minmax(0, 1fr) !important;
+  }
+
+  .memo-page .edit-section {
+    display: grid !important;
+    min-height: 0 !important;
+  }
+
+  .memo-page .form-group {
+    min-height: 0 !important;
+  }
+
+  .memo-page .memo-input {
+    min-height: 0 !important;
+    height: 120px !important;
+    font-size: 1.08rem !important;
+    padding: 14px !important;
+  }
+
+  .memo-page .char-count {
+    margin-top: 8px !important;
+    font-size: 1rem !important;
+  }
+
+  .memo-page .button-group {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 10px !important;
+    margin-top: 12px !important;
+  }
+
+  .upload-page .container.upload-card {
+    height: min(520px, calc(100dvh - var(--page-logo-bottom) - 34px)) !important;
+    padding: 64px 18px 24px !important;
+  }
+
+  .upload-card #selectStep {
+    gap: 12px !important;
+    align-content: center !important;
+  }
+
+  .upload-copy h2 {
+    font-size: 1.85rem !important;
+  }
+
+  .upload-page .info-text {
+    font-size: 1.12rem !important;
+  }
+
+  .upload-page .upload-label {
+    min-width: 170px !important;
+    min-height: 46px !important;
+    padding: 9px 28px !important;
+    font-size: 1.24rem !important;
+  }
+
+  .upload-hint,
+  .upload-page .file-meta {
+    font-size: 0.94rem !important;
+    line-height: 1.35 !important;
+  }
+
+  .upload-page .preview-content {
+    grid-template-columns: 1fr !important;
+    grid-template-rows: auto minmax(0, 1fr) !important;
+    gap: 12px !important;
+  }
+
+  .upload-page .preview-image-box {
+    width: min(100%, 210px) !important;
+    max-width: 210px !important;
+    justify-self: center !important;
+  }
+
+  .upload-page .memo-area {
+    gap: 10px !important;
+  }
+
+  .upload-page #memoInput {
+    min-height: 110px !important;
+    height: 110px !important;
+    font-size: 1.02rem !important;
+  }
+
+  .point-page .header {
+    pointer-events: none !important;
+  }
+
+  .point-page .back-btn {
+    position: fixed !important;
+    z-index: 30 !important;
+  }
+
+  .point-page .main-content {
+    top: calc(50dvh + var(--page-logo-bottom-half)) !important;
+    width: min(320px, calc(100vw - 56px)) !important;
+    display: grid !important;
+    justify-items: center !important;
+    gap: 18px !important;
+  }
+
+  .point-page .click-counter {
+    font-size: 2rem !important;
+    line-height: 1.1 !important;
+  }
+
+  .point-page .progress-bar {
+    width: 100% !important;
+    height: 28px !important;
+    margin: 0 !important;
+  }
+
+  .point-page .points-display {
+    position: static !important;
+    transform: none !important;
+    margin: -34px 0 0 !important;
+    z-index: 2 !important;
+  }
+
+  .point-page .instruction {
+    width: 100% !important;
+    padding: 18px 16px !important;
+    font-size: 1.22rem !important;
+    line-height: 1.5 !important;
+    border-radius: 8px !important;
+  }
+}
