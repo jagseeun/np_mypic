@@ -1897,3 +1897,491 @@ body {
     line-height: 1.25;
   }
 }
+
+/* Keep upload close to the original My Pic card style. */
+.upload-page {
+  padding-top: 18px !important;
+}
+
+.upload-page .header {
+  margin-bottom: 10px !important;
+}
+
+.upload-card,
+.upload-page .container.upload-card {
+  width: min(800px, calc(100vw - 48px)) !important;
+  height: min(480px, calc(100dvh - 124px)) !important;
+  padding: 40px !important;
+}
+
+.upload-card #selectStep {
+  gap: 20px;
+}
+
+.upload-copy {
+  gap: 8px;
+}
+
+.upload-copy h2 {
+  font-size: 2.35rem !important;
+}
+
+.upload-page .info-text {
+  font-size: 1.55rem !important;
+  color: #555f68 !important;
+}
+
+.upload-dropzone {
+  width: auto !important;
+  min-height: 0 !important;
+  border: 0 !important;
+  background: transparent !important;
+  display: grid;
+  justify-items: center;
+  gap: 12px;
+  padding: 0 !important;
+}
+
+.upload-dropzone:hover,
+.upload-dropzone.is-dragging {
+  background: transparent !important;
+  transform: translateY(-1px);
+}
+
+.upload-drop-icon {
+  display: none !important;
+}
+
+.upload-page .upload-label {
+  min-width: 220px;
+  min-height: 58px;
+  padding: 12px 42px !important;
+  border-radius: 999px !important;
+  background: var(--mypic-mint) !important;
+  color: #fff !important;
+  box-shadow: 0 9px 18px rgba(74, 155, 142, 0.18) !important;
+  display: inline-grid;
+  place-items: center;
+  font-size: 2.05rem !important;
+  line-height: 1;
+}
+
+.upload-dropzone:hover .upload-label,
+.upload-dropzone.is-dragging .upload-label {
+  background: var(--mypic-mint-dark) !important;
+}
+
+.upload-hint {
+  font-size: 1.08rem;
+  color: var(--mypic-muted);
+}
+
+.upload-page .file-meta {
+  color: var(--mypic-muted);
+  font-size: 1.08rem;
+}
+
+.upload-page .preview-content {
+  grid-template-columns: minmax(0, 330px) minmax(0, 1fr);
+  gap: 28px !important;
+}
+
+.upload-page .memo-area {
+  align-content: center;
+}
+
+.upload-page #uploadFinalBtn {
+  width: min(260px, 100%);
+  justify-self: end;
+  border: 0 !important;
+  background: var(--mypic-mint) !important;
+  color: #fff !important;
+  box-shadow: 0 9px 18px rgba(74, 155, 142, 0.18) !important;
+}
+
+.upload-page #uploadFinalBtn:hover {
+  background: var(--mypic-mint-dark) !important;
+}
+
+.upload-page .back-to-select {
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 42px !important;
+  height: 42px !important;
+  border: 0 !important;
+  border-radius: 50% !important;
+  background: var(--mypic-mint) !important;
+  color: #fff !important;
+  display: grid !important;
+  place-items: center !important;
+  box-shadow: none !important;
+  font-size: 1.35rem !important;
+  line-height: 1 !important;
+  z-index: 3;
+}
+
+.upload-page .back-to-select:hover {
+  background: var(--mypic-mint-dark) !important;
+}
+
+.upload-page .upload-detail {
+  position: relative;
+}
+
+@media (max-width: 760px) {
+  .upload-page {
+    padding-top: 10px !important;
+  }
+
+  .upload-card,
+  .upload-page .container.upload-card {
+    width: min(350px, calc(100vw - 28px)) !important;
+    height: calc(100dvh - 90px) !important;
+    padding: 26px 20px !important;
+  }
+
+  .upload-card #selectStep {
+    gap: 16px;
+  }
+
+  .upload-copy h2 {
+    font-size: 2rem !important;
+  }
+
+  .upload-page .info-text {
+    font-size: 1.25rem !important;
+  }
+
+  .upload-page .upload-label {
+    min-width: 200px;
+    min-height: 54px;
+    font-size: 1.75rem !important;
+  }
+
+  .upload-hint,
+  .upload-page .file-meta {
+    font-size: 0.98rem;
+  }
+
+  .upload-page #uploadFinalBtn {
+    width: 100%;
+    justify-self: stretch;
+  }
+}
+
+/* Upload alignment correction: center the card, not just the logo. */
+.upload-page {
+  padding: 24px !important;
+  display: grid !important;
+  grid-template-rows: minmax(0, 1fr) !important;
+  place-items: center !important;
+  overflow: hidden !important;
+}
+
+.upload-page .header {
+  position: fixed !important;
+  top: 22px !important;
+  left: 50% !important;
+  z-index: 20;
+  transform: translateX(-50%);
+  width: min(800px, calc(100vw - 48px)) !important;
+  margin: 0 !important;
+  pointer-events: none;
+}
+
+.upload-page .header .back-btn {
+  pointer-events: auto;
+}
+
+.upload-page .header .title {
+  font-size: clamp(4rem, 8vh, 5.1rem) !important;
+}
+
+.upload-card,
+.upload-page .container.upload-card {
+  width: min(800px, calc(100vw - 48px)) !important;
+  height: min(480px, calc(100dvh - 96px)) !important;
+  min-height: 0 !important;
+  align-self: center !important;
+  justify-self: center !important;
+  margin: 0 !important;
+  padding: 40px !important;
+}
+
+.upload-card #selectStep {
+  height: 100% !important;
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) !important;
+  grid-auto-rows: max-content;
+  align-content: center !important;
+  justify-items: center !important;
+  gap: 14px !important;
+}
+
+.upload-copy {
+  gap: 6px !important;
+}
+
+.upload-copy h2 {
+  font-size: 2.15rem !important;
+}
+
+.upload-page .info-text {
+  font-size: 1.35rem !important;
+  line-height: 1.25 !important;
+}
+
+.upload-page .upload-label {
+  min-width: 0 !important;
+  min-height: 0 !important;
+  padding: 10px 34px !important;
+  font-size: 1.45rem !important;
+  font-weight: 800;
+  line-height: 1.1 !important;
+}
+
+.upload-hint,
+.upload-page .file-meta {
+  font-size: 1rem !important;
+}
+
+.upload-page .upload-form {
+  width: auto !important;
+}
+
+.upload-page #uploadFinalBtn {
+  min-height: 52px;
+  padding: 10px 34px !important;
+  font-size: 1.45rem !important;
+  font-weight: 800;
+}
+
+@media (max-width: 760px) {
+  .upload-page {
+    padding: 14px !important;
+  }
+
+  .upload-page .header {
+    top: 14px !important;
+    width: min(350px, calc(100vw - 28px)) !important;
+  }
+
+  .upload-page .header .title {
+    font-size: clamp(2.8rem, 13vw, 3.6rem) !important;
+  }
+
+  .upload-card,
+  .upload-page .container.upload-card {
+    width: min(350px, calc(100vw - 28px)) !important;
+    height: min(620px, calc(100dvh - 108px)) !important;
+    padding: 28px 20px !important;
+  }
+
+  .upload-card #selectStep {
+    gap: 12px !important;
+  }
+
+  .upload-copy h2 {
+    font-size: 1.95rem !important;
+  }
+
+  .upload-page .info-text {
+    font-size: 1.18rem !important;
+  }
+
+  .upload-page .upload-label {
+    padding: 10px 32px !important;
+    font-size: 1.35rem !important;
+  }
+}
+
+.upload-page #selectStep[hidden],
+.upload-page #detailStep[hidden],
+.upload-page [hidden] {
+  display: none !important;
+}
+
+/* Final upload back-button placement: match the other card pages. */
+.upload-page .header .back-btn {
+  display: none !important;
+}
+
+.upload-page .container.upload-card {
+  position: relative !important;
+}
+
+.upload-page .container.upload-card > .back-btn,
+.upload-page .back-to-select {
+  position: absolute !important;
+  top: 30px !important;
+  left: 30px !important;
+  right: auto !important;
+  width: 50px !important;
+  height: 50px !important;
+  border: 0 !important;
+  border-radius: 50% !important;
+  background: var(--mypic-mint) !important;
+  color: #fff !important;
+  display: grid !important;
+  place-items: center !important;
+  box-shadow: 0 8px 18px rgba(38, 50, 63, 0.14) !important;
+  font-size: 1.35rem !important;
+  line-height: 1 !important;
+  z-index: 4;
+}
+
+.upload-page.upload-detail-active .container.upload-card > .back-btn {
+  display: none !important;
+}
+
+.upload-page .upload-detail {
+  position: static !important;
+}
+
+@media (max-width: 760px) {
+  .upload-page .container.upload-card > .back-btn,
+  .upload-page .back-to-select {
+    top: 18px !important;
+    left: 18px !important;
+    width: 42px !important;
+    height: 42px !important;
+  }
+}
+
+/* Center the upload card in the space below the logo. */
+.upload-page {
+  min-height: 100dvh !important;
+  padding: 20px 24px 24px !important;
+  display: grid !important;
+  grid-template-rows: auto minmax(0, 1fr) !important;
+  justify-items: center !important;
+  align-items: stretch !important;
+  overflow: hidden !important;
+}
+
+.upload-page .header {
+  position: static !important;
+  top: auto !important;
+  left: auto !important;
+  transform: none !important;
+  width: min(800px, calc(100vw - 48px)) !important;
+  min-height: 70px !important;
+  margin: 0 auto 10px !important;
+  display: grid !important;
+  grid-template-columns: 56px minmax(0, 1fr) 56px !important;
+  align-items: start !important;
+  pointer-events: auto !important;
+}
+
+.upload-page .header .title {
+  grid-column: 2 !important;
+  justify-self: center !important;
+  font-size: clamp(4rem, 8vh, 5.1rem) !important;
+  line-height: 0.95 !important;
+}
+
+.upload-card,
+.upload-page .container.upload-card {
+  align-self: center !important;
+  justify-self: center !important;
+  margin: 0 !important;
+}
+
+@media (max-width: 760px) {
+  .upload-page {
+    padding: 12px 14px 14px !important;
+    grid-template-rows: auto minmax(0, 1fr) !important;
+  }
+
+  .upload-page .header {
+    width: min(350px, calc(100vw - 28px)) !important;
+    min-height: 56px !important;
+    margin-bottom: 8px !important;
+    grid-template-columns: 44px minmax(0, 1fr) 44px !important;
+  }
+
+  .upload-page .header .title {
+    font-size: clamp(2.8rem, 13vw, 3.6rem) !important;
+  }
+
+  .upload-card,
+  .upload-page .container.upload-card {
+    height: min(620px, calc(100dvh - 90px)) !important;
+  }
+}
+
+/* Locked upload geometry: fixed logo, card centered below the logo area. */
+.upload-page {
+  --upload-logo-top: 20px;
+  --upload-logo-height: 88px;
+  --upload-logo-bottom-half: 54px;
+  --upload-card-height: min(480px, calc(100dvh - 136px));
+  position: relative !important;
+  min-height: 100dvh !important;
+  width: 100% !important;
+  padding: 0 !important;
+  display: block !important;
+  overflow: hidden !important;
+}
+
+.upload-page .header {
+  position: fixed !important;
+  top: var(--upload-logo-top) !important;
+  left: 50% !important;
+  z-index: 20;
+  width: min(800px, calc(100vw - 48px)) !important;
+  height: var(--upload-logo-height) !important;
+  min-height: 0 !important;
+  margin: 0 !important;
+  display: grid !important;
+  grid-template-columns: 56px minmax(0, 1fr) 56px !important;
+  align-items: start !important;
+  transform: translateX(-50%) !important;
+  pointer-events: none;
+}
+
+.upload-page .header .title {
+  grid-column: 2 !important;
+  justify-self: center !important;
+  margin: 0 !important;
+  font-size: 4.8rem !important;
+  line-height: 0.95 !important;
+}
+
+.upload-card,
+.upload-page .container.upload-card {
+  position: absolute !important;
+  top: calc(50dvh + var(--upload-logo-bottom-half)) !important;
+  left: 50% !important;
+  width: min(800px, calc(100vw - 48px)) !important;
+  height: var(--upload-card-height) !important;
+  min-height: 0 !important;
+  margin: 0 !important;
+  padding: 40px !important;
+  transform: translate(-50%, -50%) !important;
+}
+
+@media (max-width: 760px) {
+  .upload-page {
+    --upload-logo-top: 12px;
+    --upload-logo-height: 68px;
+    --upload-logo-bottom-half: 40px;
+    --upload-card-height: min(620px, calc(100dvh - 100px));
+  }
+
+  .upload-page .header {
+    width: min(350px, calc(100vw - 28px)) !important;
+    grid-template-columns: 44px minmax(0, 1fr) 44px !important;
+  }
+
+  .upload-page .header .title {
+    font-size: 3.55rem !important;
+  }
+
+  .upload-card,
+  .upload-page .container.upload-card {
+    width: min(350px, calc(100vw - 28px)) !important;
+    padding: 28px 20px !important;
+  }
+}

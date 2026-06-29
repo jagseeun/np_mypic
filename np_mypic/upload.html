@@ -30,11 +30,12 @@
 
 <body class="upload-page">
   <header class="header">
-    <button class="back-btn" type="button" onclick="moveMain()" aria-label="갤러리로 돌아가기">←</button>
     <h1 class="title">My Pic!</h1>
   </header>
 
   <main class="container upload-card">
+    <button class="back-btn" type="button" onclick="moveMain()" aria-label="갤러리로 돌아가기">←</button>
+
     <section id="selectStep" class="upload-step">
       <div class="upload-copy">
         <h2>사진 업로드</h2>
@@ -146,12 +147,14 @@
     function showDetailStep() {
       selectStep.hidden = true;
       detailStep.hidden = false;
+      document.body.classList.add('upload-detail-active');
       resultDiv.textContent = '';
     }
 
     function showSelectStep() {
       selectStep.hidden = false;
       detailStep.hidden = true;
+      document.body.classList.remove('upload-detail-active');
       setUploadMessage(uploadResultDiv, '', '');
     }
 
