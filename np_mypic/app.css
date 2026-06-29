@@ -3012,3 +3012,179 @@ body {
     border-radius: 8px !important;
   }
 }
+
+/* Mobile detail/upload step correction. */
+@media (max-width: 760px) {
+  .detail-page .container {
+    height: min(700px, calc(100dvh - var(--page-logo-bottom) - 8px)) !important;
+    padding: 58px 16px 14px !important;
+  }
+
+  .detail-page .content {
+    grid-template-rows: auto minmax(0, 1fr) !important;
+    gap: 10px !important;
+  }
+
+  .detail-page .image-section {
+    align-content: start !important;
+  }
+
+  .detail-page .image-title {
+    margin-bottom: 8px !important;
+  }
+
+  .detail-page .image-container {
+    width: min(100%, clamp(170px, 27dvh, 230px)) !important;
+    max-width: 230px !important;
+    aspect-ratio: 1 / 1 !important;
+  }
+
+  html body.detail-page #imageContainer > img {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: contain !important;
+    object-position: center center !important;
+  }
+
+  .detail-page .info-section {
+    min-height: 0 !important;
+    display: grid !important;
+    grid-template-rows: minmax(0, 1fr) 46px 46px !important;
+    gap: 10px !important;
+  }
+
+  .detail-page .info-box {
+    min-height: 0 !important;
+    height: 100% !important;
+    padding: 14px !important;
+    display: grid !important;
+    grid-template-rows: auto auto minmax(0, 1fr) !important;
+    align-content: start !important;
+  }
+
+  .detail-page .info-title {
+    margin-bottom: 8px !important;
+  }
+
+  .detail-page .info-item {
+    margin-bottom: 6px !important;
+    min-height: 0 !important;
+    max-height: none !important;
+  }
+
+  .detail-page .info-item:last-child {
+    overflow-y: auto !important;
+  }
+
+  .detail-page .action-btn {
+    height: 46px !important;
+    min-height: 46px !important;
+    margin: 0 !important;
+    font-size: 1.15rem !important;
+  }
+
+  .upload-page.upload-detail-active .container.upload-card {
+    height: min(610px, calc(100dvh - var(--page-logo-bottom) - 18px)) !important;
+    padding: 18px !important;
+  }
+
+  .upload-page .upload-detail {
+    position: relative !important;
+    display: grid !important;
+    grid-template-rows: 44px minmax(0, 1fr) !important;
+    gap: 12px !important;
+    align-items: stretch !important;
+    justify-items: stretch !important;
+  }
+
+  .upload-page .upload-detail .back-to-select {
+    position: static !important;
+    top: auto !important;
+    left: auto !important;
+    justify-self: start !important;
+    align-self: start !important;
+    width: 44px !important;
+    height: 44px !important;
+    box-shadow: 0 8px 16px rgba(38, 50, 63, 0.12) !important;
+  }
+
+  .upload-page .upload-detail .preview-content {
+    min-height: 0 !important;
+    height: 100% !important;
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    grid-template-rows: auto minmax(0, 1fr) !important;
+    align-content: stretch !important;
+    justify-items: stretch !important;
+    gap: 12px !important;
+  }
+
+  .upload-page .upload-detail .preview-image-box {
+    width: min(100%, clamp(172px, 28dvh, 230px)) !important;
+    max-width: 230px !important;
+    justify-self: center !important;
+    aspect-ratio: 1 / 1 !important;
+    display: grid !important;
+    place-items: center !important;
+    position: relative !important;
+    overflow: hidden !important;
+  }
+
+  html body.upload-page .upload-detail #imagePreview {
+    position: absolute !important;
+    inset: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    max-width: 100% !important;
+    max-height: 100% !important;
+    object-fit: contain !important;
+    object-position: center center !important;
+    display: block !important;
+  }
+
+  .upload-page .upload-detail .memo-area {
+    min-height: 0 !important;
+    display: grid !important;
+    grid-template-rows: auto minmax(0, 1fr) 48px minmax(0, auto) !important;
+    align-content: stretch !important;
+    gap: 10px !important;
+    padding: 0 !important;
+  }
+
+  .upload-page .upload-detail .memo-area h2 {
+    margin: 0 !important;
+    font-size: 1.4rem !important;
+    line-height: 1.15 !important;
+  }
+
+  .upload-page .upload-detail #memoInput {
+    width: 100% !important;
+    min-height: 0 !important;
+    height: 100% !important;
+    padding: 12px 14px !important;
+    border: 1px solid rgba(74, 155, 142, 0.28) !important;
+    border-radius: 8px !important;
+    background: rgba(255, 255, 255, 0.86) !important;
+    font-size: 1rem !important;
+    line-height: 1.35 !important;
+  }
+
+  .upload-page .upload-detail #uploadFinalBtn {
+    width: 100% !important;
+    height: 48px !important;
+    min-height: 48px !important;
+    justify-self: stretch !important;
+    margin: 0 !important;
+    padding: 9px 18px !important;
+    border-radius: 999px !important;
+    box-shadow: none !important;
+    font-size: 1.15rem !important;
+  }
+
+  .upload-page .upload-detail .upload-status {
+    min-height: 18px !important;
+    font-size: 0.9rem !important;
+    line-height: 1.25 !important;
+    text-align: center !important;
+  }
+}
