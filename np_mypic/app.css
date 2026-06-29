@@ -3689,3 +3689,49 @@ html body.upload-page.upload-detail-active .preview-image-box > #imagePreview {
     font-size: 1.12rem !important;
   }
 }
+
+/* Match every logout button to the gallery button's actual final position. */
+html body.gallery-page .logout-btn,
+html body.detail-page .logout-btn,
+html body.upload-page .logout-btn {
+  position: fixed !important;
+  top: 18px !important;
+  right: 18px !important;
+  width: 48px !important;
+  height: 48px !important;
+  min-width: 48px !important;
+  min-height: 48px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: none !important;
+  box-shadow: none !important;
+  filter: none !important;
+  z-index: 1000 !important;
+  display: grid !important;
+  place-items: center !important;
+  pointer-events: auto !important;
+}
+
+html body.gallery-page .logout-btn img,
+html body.detail-page .logout-btn img,
+html body.upload-page .logout-btn img {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: contain !important;
+  display: block !important;
+}
+
+@media (max-width: 760px) {
+  html body.gallery-page .logout-btn,
+  html body.detail-page .logout-btn,
+  html body.upload-page .logout-btn {
+    top: 10px !important;
+    right: 10px !important;
+    width: 40px !important;
+    height: 40px !important;
+    min-width: 40px !important;
+    min-height: 40px !important;
+  }
+}
