@@ -81,6 +81,12 @@ const preventHtmlCache = (res) => {
     res.setHeader("Expires", "0");
 };
 
+const preventUiAssetCache = (res) => {
+    res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, private");
+    res.setHeader("Pragma", "no-cache");
+    res.setHeader("Expires", "0");
+};
+
 app.use((req, res, next) => {
     if (req.method === "GET" && req.path.endsWith(".html")) {
         preventHtmlCache(res);
@@ -103,6 +109,8 @@ app.use(express.static("np_mypic", {
     setHeaders: (res, filePath) => {
         if (filePath.endsWith(".html")) {
             preventHtmlCache(res);
+        } else if (filePath.endsWith(".css") || filePath.endsWith(".js")) {
+            preventUiAssetCache(res);
         }
     }
 }));
