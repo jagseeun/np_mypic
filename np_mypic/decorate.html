@@ -395,6 +395,64 @@
             selectedSticker = element.dataset.emoji;
         }
 
+        function toFiniteNumber(value, fallback = 0) {
+            const number = parseFloat(value);
+            return Number.isFinite(number) ? number : fallback;
+        }
+
+        function clampNumber(value, min, max) {
+            return Math.min(Math.max(value, min), max);
+        }
+
+        function getStickerMetrics(sticker) {
+            const container = document.getElementById('imageContainer');
+            const rect = container.getBoundingClientRect();
+            const scale = clampNumber(toFiniteNumber(sticker.dataset.scale, 1), 0.5, 3);
+            const width = sticker.offsetWidth || 32;
+            const height = sticker.offsetHeight || 32;
+
+            return {
+                containerWidth: rect.width,
+                containerHeight: rect.height,
+                widthPercent: rect.width ? (width / rect.width) * 100 : 0,
+                heightPercent: rect.height ? (height / rect.height) * 100 : 0,
+                scale
+            };
+        }
+
+        function getClampedStickerPosition(sticker, x, y) {
+            const metrics = getStickerMetrics(sticker);
+            if (!metrics.containerWidth || !metrics.containerHeight) {
+                return { x, y };
+            }
+
+            const scaleBleedX = Math.max(0, (metrics.widthPercent * (metrics.scale - 1)) / 2);
+            const scaleBleedY = Math.max(0, (metrics.heightPercent * (metrics.scale - 1)) / 2);
+            const minX = scaleBleedX;
+            const minY = scaleBleedY;
+            const maxX = Math.max(minX, 100 - metrics.widthPercent - scaleBleedX);
+            const maxY = Math.max(minY, 100 - metrics.heightPercent - scaleBleedY);
+
+            return {
+                x: clampNumber(toFiniteNumber(x, minX), minX, maxX),
+                y: clampNumber(toFiniteNumber(y, minY), minY, maxY)
+            };
+        }
+
+        function setStickerPosition(sticker, x, y) {
+            const position = getClampedStickerPosition(sticker, x, y);
+            sticker.style.left = position.x + '%';
+            sticker.style.top = position.y + '%';
+        }
+
+        function clampStickerToVisibleArea(sticker) {
+            setStickerPosition(
+                sticker,
+                toFiniteNumber(sticker.style.left, 0),
+                toFiniteNumber(sticker.style.top, 0)
+            );
+        }
+
         // 이미지 컨테이너 클릭 시 스티커 추가
         document.addEventListener('DOMContentLoaded', () => {
             const container = document.getElementById('imageContainer');
@@ -427,10 +485,11 @@
             sticker.textContent = emoji;
             sticker.style.left = x + '%';
             sticker.style.top = y + '%';
-            sticker.style.transform = `scale(${scale})`;
+            const normalizedScale = clampNumber(toFiniteNumber(scale, 1), 0.5, 3);
+            sticker.style.transform = `scale(${normalizedScale})`;
             sticker.dataset.emoji = emoji;
             sticker.dataset.itemId = stickerItems[emoji]?.id || 0;
-            sticker.dataset.scale = scale;
+            sticker.dataset.scale = normalizedScale;
             
             // 기존 스티커는 가격 0으로 설정
             if (isExisting) {
@@ -483,14 +542,7 @@
                     const deltaX = ((e.clientX - startX) / rect.width) * 100;
                     const deltaY = ((e.clientY - startY) / rect.height) * 100;
                     
-                    let newX = initialX + deltaX;
-                    let newY = initialY + deltaY;
-                    
-                    newX = Math.max(0, Math.min(newX, 95));
-                    newY = Math.max(0, Math.min(newY, 95));
-                    
-                    sticker.style.left = newX + '%';
-                    sticker.style.top = newY + '%';
+                    setStickerPosition(sticker, initialX + deltaX, initialY + deltaY);
                 } else if (isResizing) {
                     const deltaY = e.clientY - startY;
                     const scaleFactor = 1 + (deltaY / 100);
@@ -500,6 +552,7 @@
                     
                     sticker.style.transform = `scale(${newScale})`;
                     sticker.dataset.scale = newScale;
+                    clampStickerToVisibleArea(sticker);
                 }
             });
 
@@ -523,6 +576,7 @@
             });
 
             container.appendChild(sticker);
+            clampStickerToVisibleArea(sticker);
             if (!isExisting) {
                 stickerHistory.push(sticker);
             }

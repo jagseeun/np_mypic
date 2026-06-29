@@ -10,6 +10,41 @@
   --mypic-shadow: 0 14px 34px rgba(38, 50, 63, 0.13);
 }
 
+/* Header actions should live with the logo, not at the viewport edge. */
+.detail-page .header .title,
+.editor-page .header .title,
+.memo-page .header .title,
+.point-page .header .title,
+.upload-page .header .title {
+  pointer-events: auto !important;
+}
+
+.detail-page .header .logout-btn,
+.upload-page .header .logout-btn {
+  position: static !important;
+  top: auto !important;
+  right: auto !important;
+  grid-column: 3 !important;
+  justify-self: end !important;
+  align-self: start !important;
+  width: 52px !important;
+  height: 52px !important;
+  min-width: 52px !important;
+  min-height: 52px !important;
+  pointer-events: auto !important;
+  z-index: 25 !important;
+}
+
+@media (max-width: 760px) {
+  .detail-page .header .logout-btn,
+  .upload-page .header .logout-btn {
+    width: 40px !important;
+    height: 40px !important;
+    min-width: 40px !important;
+    min-height: 40px !important;
+  }
+}
+
 html {
   scroll-behavior: smooth;
 }

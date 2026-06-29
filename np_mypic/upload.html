@@ -31,6 +31,9 @@
 <body class="upload-page">
   <header class="header">
     <h1 class="title">My Pic!</h1>
+    <button class="logout-btn" type="button" onclick="handleLogout()" aria-label="logout">
+      <img src="logout.png" alt="logout">
+    </button>
   </header>
 
   <main class="container upload-card">
@@ -220,6 +223,17 @@
 
     function moveMain() {
       appNavigate('./gallery.html');
+    }
+
+    async function handleLogout() {
+      try {
+        const res = await fetch('/logout', { method: 'POST' });
+        if (res.ok) {
+          appNavigate('index.html', { replace: true });
+        }
+      } catch (err) {
+        console.error('Logout error:', err);
+      }
     }
   </script>
 </body>
