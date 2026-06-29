@@ -25,15 +25,16 @@
       background: linear-gradient(180deg, #D1FEE0 5%, #afcded 100%);
     }
   </style>
-  <link rel="stylesheet" href="app.css?v=ui-fix-20260630-1">
+  <link rel="stylesheet" href="app.css?v=ui-fix-20260630-2">
 </head>
 
 <body class="upload-page">
+  <button class="logout-btn" type="button" onclick="handleLogout()" aria-label="logout">
+    <img src="logout.png" alt="logout">
+  </button>
+
   <header class="header">
     <h1 class="title">My Pic!</h1>
-    <button class="logout-btn" type="button" onclick="handleLogout()" aria-label="logout">
-      <img src="logout.png" alt="logout">
-    </button>
   </header>
 
   <main class="container upload-card">
