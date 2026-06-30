@@ -225,7 +225,7 @@
             }
         }
     </style>
-    <link rel="stylesheet" href="app.css?v=ui-fix-20260630-4">
+    <link rel="stylesheet" href="app.css?v=ui-fix-20260630-6">
 </head>
 <body class="editor-page">
     <button class="logout-btn" type="button" onclick="handleLogout()" aria-label="로그아웃">
@@ -238,7 +238,6 @@
 
     <div class="container">
         <button class="back-btn" onclick="goBack()">←</button>
-        <button class="info-icon" type="button" onclick="showInfo()" aria-label="꾸미기 도움말">?</button>
         <div class="points-display">포인트 : <span id="userPoints">60</span></div>
 
         <div class="content">
@@ -274,6 +273,7 @@
                 </div>
 
                 <button class="complete-btn" id="completeBtn" onclick="completeDecoration()">완료</button>
+                <button class="decorate-help-link" type="button" onclick="showInfo()">* 어떻게 하는지 모르겠어요.</button>
             </div>
         </div>
     </div>
