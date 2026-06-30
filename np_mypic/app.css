@@ -3895,3 +3895,532 @@ html body.upload-page .logout-btn img {
     font-size: 1.02rem !important;
   }
 }
+
+/* Final v4 alignment: center cards in the space below the logo and size the tools for real use. */
+html body.gallery-page .logout-btn,
+html body.detail-page .logout-btn,
+html body.upload-page .logout-btn,
+html body.editor-page .logout-btn {
+  position: fixed !important;
+  top: 18px !important;
+  right: 18px !important;
+  width: 48px !important;
+  height: 48px !important;
+  min-width: 48px !important;
+  min-height: 48px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: none !important;
+  box-shadow: none !important;
+  filter: none !important;
+  z-index: 1000 !important;
+  display: grid !important;
+  place-items: center !important;
+  pointer-events: auto !important;
+}
+
+html body.gallery-page .logout-btn img,
+html body.detail-page .logout-btn img,
+html body.upload-page .logout-btn img,
+html body.editor-page .logout-btn img {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: contain !important;
+  display: block !important;
+}
+
+.upload-page.upload-detail-active .container.upload-card,
+.editor-page .container {
+  top: calc(50dvh + var(--page-logo-bottom-half)) !important;
+  left: 50% !important;
+  transform: translate(-50%, -50%) !important;
+}
+
+.upload-page .container.upload-card {
+  width: min(900px, calc(100vw - 56px)) !important;
+  max-width: min(900px, calc(100vw - 56px)) !important;
+  height: min(520px, calc(100dvh - var(--page-logo-bottom) - 28px)) !important;
+  padding: 46px 54px !important;
+}
+
+.upload-page .upload-copy h2 {
+  color: var(--mypic-mint-dark) !important;
+  font-size: 2.35rem !important;
+  line-height: 1.05 !important;
+}
+
+.upload-page .info-text,
+.upload-page .file-meta,
+.upload-page .upload-hint {
+  color: #4f6670 !important;
+}
+
+.upload-page .info-text {
+  font-size: 1.55rem !important;
+}
+
+.upload-page .upload-label {
+  color: #ffffff !important;
+  font-size: 1.85rem !important;
+}
+
+.upload-page.upload-detail-active .container.upload-card {
+  width: min(1060px, calc(100vw - 56px)) !important;
+  max-width: min(1060px, calc(100vw - 56px)) !important;
+  height: min(640px, calc(100dvh - var(--page-logo-bottom) - 28px)) !important;
+  max-height: calc(100dvh - var(--page-logo-bottom) - 28px) !important;
+  padding: 28px 34px 32px !important;
+  overflow: hidden !important;
+}
+
+.upload-page.upload-detail-active .upload-detail {
+  position: relative !important;
+  height: 100% !important;
+  min-height: 0 !important;
+  display: grid !important;
+  grid-template-rows: 54px minmax(0, 1fr) !important;
+  gap: 14px !important;
+}
+
+.upload-page.upload-detail-active .back-to-select {
+  position: static !important;
+  width: 50px !important;
+  height: 50px !important;
+  justify-self: start !important;
+  align-self: center !important;
+  margin: 0 !important;
+  font-size: 1.9rem !important;
+  font-family: Arial, Helvetica, sans-serif !important;
+}
+
+.upload-page.upload-detail-active .preview-content {
+  height: 100% !important;
+  min-height: 0 !important;
+  overflow: hidden !important;
+  display: grid !important;
+  grid-template-columns: minmax(390px, 460px) minmax(420px, 460px) !important;
+  gap: 28px !important;
+  align-items: start !important;
+  justify-content: center !important;
+}
+
+.upload-page.upload-detail-active .preview-image-box {
+  width: min(100%, 430px) !important;
+  max-width: 430px !important;
+  height: auto !important;
+  max-height: none !important;
+  aspect-ratio: 1 / 1 !important;
+  align-self: start !important;
+  justify-self: center !important;
+  border-color: rgba(47, 122, 104, 0.2) !important;
+  background: rgba(255, 255, 255, 0.86) !important;
+}
+
+.upload-page.upload-detail-active .memo-area {
+  width: 100% !important;
+  height: 430px !important;
+  min-height: 0 !important;
+  display: grid !important;
+  grid-template-rows: minmax(0, 1fr) 58px 22px !important;
+  gap: 14px !important;
+  align-self: start !important;
+}
+
+.upload-page.upload-detail-active .memo-panel {
+  min-height: 0 !important;
+  padding: 22px !important;
+  gap: 16px !important;
+  border-color: rgba(47, 122, 104, 0.22) !important;
+  background: rgba(255, 255, 255, 0.76) !important;
+}
+
+.upload-page.upload-detail-active .memo-panel h2 {
+  color: var(--mypic-mint-dark) !important;
+  font-size: 1.85rem !important;
+  line-height: 1.05 !important;
+}
+
+.upload-page.upload-detail-active .memo-input-shell {
+  padding: 18px 20px !important;
+  border-radius: 8px !important;
+  background: rgba(255, 255, 255, 0.96) !important;
+  box-shadow: inset 0 0 0 1px rgba(47, 122, 104, 0.22) !important;
+}
+
+.upload-page.upload-detail-active #memoInput {
+  min-height: 0 !important;
+  height: 100% !important;
+  color: #26323f !important;
+  font-size: 1.34rem !important;
+  line-height: 1.42 !important;
+}
+
+.upload-page.upload-detail-active #memoInput::placeholder {
+  color: #73858c !important;
+  opacity: 1 !important;
+}
+
+.upload-page.upload-detail-active #uploadFinalBtn {
+  width: min(300px, 100%) !important;
+  height: 58px !important;
+  min-height: 58px !important;
+  color: #ffffff !important;
+  font-size: 1.48rem !important;
+}
+
+.editor-page .container {
+  width: min(1060px, calc(100vw - 56px)) !important;
+  max-width: min(1060px, calc(100vw - 56px)) !important;
+  height: min(650px, calc(100dvh - var(--page-logo-bottom) - 28px)) !important;
+  padding: 28px 32px 32px !important;
+  overflow: hidden !important;
+}
+
+.editor-page .container > .back-btn,
+.editor-page .info-icon {
+  top: 28px !important;
+  width: 50px !important;
+  height: 50px !important;
+  border: 0 !important;
+  border-radius: 50% !important;
+  color: #ffffff !important;
+  background: var(--mypic-mint) !important;
+  box-shadow: 0 10px 20px rgba(38, 50, 63, 0.14) !important;
+  display: grid !important;
+  place-items: center !important;
+  z-index: 4 !important;
+  font-family: Arial, Helvetica, sans-serif !important;
+}
+
+.editor-page .container > .back-btn {
+  left: 32px !important;
+}
+
+.editor-page .info-icon {
+  position: absolute !important;
+  left: 92px !important;
+  right: auto !important;
+  font-size: 1.7rem !important;
+  font-weight: 800 !important;
+}
+
+.editor-page .points-display {
+  top: 30px !important;
+  left: auto !important;
+  right: 32px !important;
+  color: var(--mypic-mint-dark) !important;
+  background: rgba(255, 255, 255, 0.78) !important;
+  border: 1px solid rgba(47, 122, 104, 0.18) !important;
+  border-radius: 999px !important;
+  padding: 9px 18px !important;
+  font-size: 1.38rem !important;
+  line-height: 1 !important;
+}
+
+.editor-page .content {
+  height: calc(100% - 72px) !important;
+  min-height: 0 !important;
+  margin: 72px 0 0 !important;
+  padding: 0 !important;
+  display: grid !important;
+  grid-template-columns: minmax(420px, 1fr) minmax(340px, 370px) !important;
+  gap: 34px !important;
+  align-items: stretch !important;
+}
+
+.editor-page .image-section {
+  min-height: 0 !important;
+  display: grid !important;
+  grid-template-rows: auto minmax(0, 1fr) !important;
+  align-content: center !important;
+  justify-items: center !important;
+}
+
+.editor-page .image-title {
+  color: #26323f !important;
+  font-size: 1.62rem !important;
+  line-height: 1.15 !important;
+  margin: 0 0 14px !important;
+}
+
+.editor-page .image-container {
+  width: min(100%, 430px) !important;
+  max-width: 430px !important;
+  aspect-ratio: 1 / 1 !important;
+  height: auto !important;
+  position: relative !important;
+  overflow: hidden !important;
+  border-color: rgba(47, 122, 104, 0.2) !important;
+  background: rgba(255, 255, 255, 0.88) !important;
+}
+
+.editor-page .image-container img {
+  position: absolute !important;
+  inset: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  max-width: 100% !important;
+  max-height: 100% !important;
+  object-fit: contain !important;
+  object-position: center center !important;
+  display: block !important;
+}
+
+.editor-page .decoration-section {
+  min-height: 0 !important;
+  width: 100% !important;
+  display: grid !important;
+  grid-template-rows: auto minmax(0, 1fr) auto 62px !important;
+  gap: 12px !important;
+}
+
+.editor-page .price-info {
+  color: #26323f !important;
+  background: rgba(255, 255, 255, 0.72) !important;
+  border: 1px solid rgba(47, 122, 104, 0.16) !important;
+  border-radius: 8px !important;
+  font-size: 1.42rem !important;
+}
+
+.editor-page .stickers-grid {
+  margin: 0 !important;
+  padding: 18px !important;
+  gap: 13px !important;
+  border-color: rgba(47, 122, 104, 0.16) !important;
+  background: rgba(255, 255, 255, 0.78) !important;
+  grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  place-items: center !important;
+}
+
+.editor-page .sticker-item {
+  width: 64px !important;
+  height: 64px !important;
+  font-size: 2.35rem !important;
+}
+
+.editor-page .tool-actions {
+  display: grid !important;
+  grid-template-columns: 1fr 1fr !important;
+  gap: 10px !important;
+  margin: 0 !important;
+}
+
+.editor-page .tool-btn {
+  min-height: 48px !important;
+  color: #26323f !important;
+  font-size: 1.08rem !important;
+  line-height: 1.1 !important;
+}
+
+.editor-page .complete-btn {
+  height: 62px !important;
+  min-height: 62px !important;
+  color: #ffffff !important;
+  font-size: 1.65rem !important;
+}
+
+@media (max-width: 760px) {
+  html body.gallery-page .logout-btn,
+  html body.detail-page .logout-btn,
+  html body.upload-page .logout-btn,
+  html body.editor-page .logout-btn {
+    top: 10px !important;
+    right: 10px !important;
+    width: 40px !important;
+    height: 40px !important;
+    min-width: 40px !important;
+    min-height: 40px !important;
+  }
+
+  .upload-page .container.upload-card {
+    width: min(370px, calc(100vw - 20px)) !important;
+    max-width: min(370px, calc(100vw - 20px)) !important;
+    height: min(560px, calc(100dvh - var(--page-logo-bottom) - 18px)) !important;
+    padding: 34px 22px !important;
+  }
+
+  .upload-page .upload-copy h2 {
+    font-size: 2rem !important;
+  }
+
+  .upload-page .info-text {
+    font-size: 1.22rem !important;
+  }
+
+  .upload-page .upload-label {
+    font-size: 1.45rem !important;
+  }
+
+  .upload-page.upload-detail-active .container.upload-card {
+    width: min(372px, calc(100vw - 20px)) !important;
+    max-width: min(372px, calc(100vw - 20px)) !important;
+    height: min(682px, calc(100dvh - var(--page-logo-bottom) - 16px)) !important;
+    max-height: calc(100dvh - var(--page-logo-bottom) - 16px) !important;
+    padding: 14px 14px 16px !important;
+    overflow: hidden !important;
+  }
+
+  .upload-page.upload-detail-active .upload-detail {
+    height: 100% !important;
+    display: grid !important;
+    grid-template-rows: 44px minmax(0, 1fr) !important;
+    gap: 10px !important;
+  }
+
+  .upload-page.upload-detail-active .back-to-select {
+    width: 42px !important;
+    height: 42px !important;
+    font-size: 1.5rem !important;
+    font-family: Arial, Helvetica, sans-serif !important;
+  }
+
+  .upload-page.upload-detail-active .preview-content {
+    grid-template-columns: 1fr !important;
+    grid-template-rows: auto minmax(0, 1fr) !important;
+    gap: 12px !important;
+    align-items: stretch !important;
+  }
+
+  .upload-page.upload-detail-active .preview-image-box {
+    width: min(100%, 252px) !important;
+    max-width: 252px !important;
+    justify-self: center !important;
+  }
+
+  .upload-page.upload-detail-active .memo-area {
+    height: 100% !important;
+    grid-template-rows: minmax(0, 1fr) 52px 18px !important;
+    gap: 10px !important;
+  }
+
+  .upload-page.upload-detail-active .memo-panel {
+    padding: 16px !important;
+    gap: 10px !important;
+  }
+
+  .upload-page.upload-detail-active .memo-panel h2 {
+    font-size: 1.42rem !important;
+  }
+
+  .upload-page.upload-detail-active .memo-input-shell {
+    padding: 13px 15px !important;
+  }
+
+  .upload-page.upload-detail-active #memoInput {
+    font-size: 1.12rem !important;
+    line-height: 1.36 !important;
+  }
+
+  .upload-page.upload-detail-active #uploadFinalBtn {
+    width: min(250px, 100%) !important;
+    height: 52px !important;
+    min-height: 52px !important;
+    font-size: 1.25rem !important;
+  }
+
+  .editor-page .container {
+    width: min(372px, calc(100vw - 20px)) !important;
+    max-width: min(372px, calc(100vw - 20px)) !important;
+    height: min(724px, calc(100dvh - var(--page-logo-bottom) - 16px)) !important;
+    padding: 14px !important;
+    display: grid !important;
+    grid-template-rows: 48px minmax(0, 1fr) !important;
+    gap: 10px !important;
+    overflow: hidden !important;
+  }
+
+  .editor-page .container > .back-btn,
+  .editor-page .info-icon {
+    top: 14px !important;
+    width: 42px !important;
+    height: 42px !important;
+  }
+
+  .editor-page .container > .back-btn {
+    left: 14px !important;
+  }
+
+  .editor-page .info-icon {
+    left: 62px !important;
+    font-size: 1.35rem !important;
+  }
+
+  .editor-page .points-display {
+    position: static !important;
+    grid-row: 1 !important;
+    justify-self: end !important;
+    align-self: center !important;
+    top: auto !important;
+    left: auto !important;
+    right: auto !important;
+    width: 112px !important;
+    max-width: 112px !important;
+    padding: 8px 12px !important;
+    font-size: 1.02rem !important;
+    white-space: nowrap !important;
+  }
+
+  @media (max-width: 360px) {
+    .editor-page .points-display {
+      width: 104px !important;
+      max-width: 104px !important;
+      padding-left: 10px !important;
+      padding-right: 10px !important;
+    }
+  }
+
+  .editor-page .content {
+    grid-row: 2 !important;
+    height: 100% !important;
+    margin-top: 0 !important;
+    grid-template-columns: 1fr !important;
+    grid-template-rows: auto minmax(0, 1fr) !important;
+    gap: 12px !important;
+  }
+
+  .editor-page .image-title {
+    font-size: 1.12rem !important;
+    margin-bottom: 8px !important;
+  }
+
+  .editor-page .image-container {
+    width: min(100%, 238px) !important;
+    max-width: 238px !important;
+  }
+
+  .editor-page .decoration-section {
+    grid-template-rows: auto auto auto 52px !important;
+    align-content: start !important;
+    gap: 9px !important;
+  }
+
+  .editor-page .price-info {
+    padding: 8px 12px !important;
+    font-size: 1.12rem !important;
+  }
+
+  .editor-page .stickers-grid {
+    padding: 12px 14px !important;
+    gap: 9px !important;
+  }
+
+  .editor-page .sticker-item {
+    width: 48px !important;
+    height: 48px !important;
+    font-size: 1.85rem !important;
+  }
+
+  .editor-page .tool-btn {
+    min-height: 42px !important;
+    padding: 7px 8px !important;
+    font-size: 0.94rem !important;
+  }
+
+  .editor-page .complete-btn {
+    height: 52px !important;
+    min-height: 52px !important;
+    font-size: 1.34rem !important;
+  }
+}

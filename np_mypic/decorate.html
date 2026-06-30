@@ -225,16 +225,20 @@
             }
         }
     </style>
-    <link rel="stylesheet" href="app.css?v=ui-fix-20260630-3">
+    <link rel="stylesheet" href="app.css?v=ui-fix-20260630-4">
 </head>
 <body class="editor-page">
+    <button class="logout-btn" type="button" onclick="handleLogout()" aria-label="로그아웃">
+        <img src="logout.png" alt="로그아웃">
+    </button>
+
     <div class="header">
         <h1 class="title">My Pic!</h1>
-        <button class="info-icon" onclick="showInfo()">ⓘ</button>
     </div>
 
     <div class="container">
         <button class="back-btn" onclick="goBack()">←</button>
+        <button class="info-icon" type="button" onclick="showInfo()" aria-label="꾸미기 도움말">?</button>
         <div class="points-display">포인트 : <span id="userPoints">60</span></div>
 
         <div class="content">
@@ -725,6 +729,18 @@
         async function goBack() {
             if (await appConfirm('꾸미기를 취소하시겠습니까?', { title: '나가기', confirmText: '나가기' })) {
                 appNavigate('./gallery.html');
+            }
+        }
+
+        async function handleLogout() {
+            try {
+                const res = await fetch('/logout', { method: 'POST' });
+                if (res.ok) {
+                    await appAlert('로그아웃 되었습니다.', { title: '로그아웃', variant: 'success' });
+                    appNavigate('index.html', { replace: true });
+                }
+            } catch (err) {
+                console.error('로그아웃 오류:', err);
             }
         }
     </script>
