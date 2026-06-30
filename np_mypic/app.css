@@ -8712,3 +8712,80 @@ html body.editor-page .points-display {
     font-size: 1.02rem !important;
   }
 }
+
+/* Final v20: make decorate use the same large photo rhythm as detail. */
+html body.editor-page {
+  --decorate-photo: 520px;
+  --decorate-side: 390px;
+  --decorate-action: 58px;
+}
+
+html body.editor-page .content {
+  height: calc(100% - 78px) !important;
+  margin: 78px 0 0 !important;
+  grid-template-columns: minmax(0, var(--decorate-photo)) minmax(0, var(--decorate-side)) !important;
+  gap: 34px !important;
+  align-items: center !important;
+}
+
+html body.editor-page .image-section {
+  height: var(--decorate-photo) !important;
+  display: grid !important;
+  grid-template-rows: var(--decorate-photo) !important;
+  align-content: center !important;
+}
+
+html body.editor-page .image-title {
+  display: none !important;
+}
+
+html body.editor-page .image-container {
+  width: min(100%, var(--decorate-photo)) !important;
+  max-width: var(--decorate-photo) !important;
+  height: var(--decorate-photo) !important;
+  max-height: var(--decorate-photo) !important;
+}
+
+html body.editor-page .decoration-section {
+  width: 100% !important;
+  height: var(--decorate-photo) !important;
+  min-height: var(--decorate-photo) !important;
+  margin-top: 0 !important;
+  align-self: center !important;
+}
+
+@media (max-width: 760px) {
+  html body.editor-page {
+    --decorate-photo: 316px;
+    --decorate-action: 44px;
+  }
+
+  html body.editor-page .content {
+    height: auto !important;
+    margin: calc(var(--decorate-control) + var(--decorate-gap-top)) 0 0 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 10px !important;
+    align-items: stretch !important;
+  }
+
+  html body.editor-page .image-section {
+    flex: 0 0 var(--decorate-photo) !important;
+    height: var(--decorate-photo) !important;
+    grid-template-rows: var(--decorate-photo) !important;
+  }
+
+  html body.editor-page .image-container {
+    width: min(100%, var(--decorate-photo)) !important;
+    max-width: var(--decorate-photo) !important;
+    height: var(--decorate-photo) !important;
+    max-height: var(--decorate-photo) !important;
+  }
+
+  html body.editor-page .decoration-section {
+    flex: 0 0 272px !important;
+    height: 272px !important;
+    min-height: 272px !important;
+    align-self: stretch !important;
+  }
+}

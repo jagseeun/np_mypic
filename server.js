@@ -470,7 +470,7 @@ app.get("/api/decorations/:photoId", async (req, res) => {
         
         // 해당 사진에 붙어있는 스티커 정보들 (위치, 크기, 회전값 포함)
         const [decorations] = await db.promise().query(
-            "SELECT item_id, x, y, scale, rotation FROM decorations WHERE photo_id = ?",
+            "SELECT id, item_id, x, y, scale, rotation FROM decorations WHERE photo_id = ?",
             [photoId]
         );
         
@@ -484,15 +484,19 @@ app.get("/api/decorations/:photoId", async (req, res) => {
 // 사진 꾸미기 (새 스티커 추가)
 app.post("/api/decorate/add", async (req, res) => {
     const userId = req.session.userId;
-    const { photoId, decorations } = req.body; // totalPrice는 서버에서 직접 계산
+    const { photoId, decorations, deletedDecorationIds, updatedDecorations } = req.body; // totalPrice는 서버에서 직접 계산
     const newDecorations = Array.isArray(decorations) ? decorations : [];
+    const decorationIdsToDelete = Array.isArray(deletedDecorationIds)
+        ? [...new Set(deletedDecorationIds.map(Number).filter(Number.isInteger))]
+        : [];
+    const decorationsToUpdate = Array.isArray(updatedDecorations) ? updatedDecorations : [];
 
     if (!userId) {
         return res.status(401).json({ error: "로그인이 필요합니다." });
     }
 
-    if (!photoId || newDecorations.length === 0) {
-        return res.status(400).json({ error: "저장할 스티커가 없습니다." });
+    if (!photoId || (newDecorations.length === 0 && decorationIdsToDelete.length === 0 && decorationsToUpdate.length === 0)) {
+        return res.status(400).json({ error: "저장할 변경 사항이 없습니다." });
     }
 
     const itemIds = newDecorations.map(d => Number(d.item_id));
@@ -500,7 +504,38 @@ app.post("/api/decorate/add", async (req, res) => {
         return res.status(400).json({ error: "올바르지 않은 스티커 정보가 포함되어 있습니다." });
     }
 
-    console.log('꾸미기 추가 요청:', { photoId, decorationsCount: newDecorations.length });
+    if (decorationIdsToDelete.some(id => id <= 0)) {
+        return res.status(400).json({ error: "올바르지 않은 삭제 정보가 포함되어 있습니다." });
+    }
+
+    const invalidNewDecoration = newDecorations.some(deco =>
+        !Number.isFinite(Number(deco.x)) ||
+        !Number.isFinite(Number(deco.y)) ||
+        !Number.isFinite(Number(deco.scale)) ||
+        !Number.isFinite(Number(deco.rotation ?? 0))
+    );
+    if (invalidNewDecoration) {
+        return res.status(400).json({ error: "올바르지 않은 스티커 위치 정보가 포함되어 있습니다." });
+    }
+
+    const invalidUpdatedDecoration = decorationsToUpdate.some(deco =>
+        !Number.isInteger(Number(deco.id)) ||
+        Number(deco.id) <= 0 ||
+        !Number.isFinite(Number(deco.x)) ||
+        !Number.isFinite(Number(deco.y)) ||
+        !Number.isFinite(Number(deco.scale)) ||
+        !Number.isFinite(Number(deco.rotation ?? 0))
+    );
+    if (invalidUpdatedDecoration) {
+        return res.status(400).json({ error: "올바르지 않은 기존 스티커 변경 정보가 포함되어 있습니다." });
+    }
+
+    console.log('꾸미기 저장 요청:', {
+        photoId,
+        addCount: newDecorations.length,
+        updateCount: decorationsToUpdate.length,
+        deleteCount: decorationIdsToDelete.length
+    });
 
     try {
         // Fix 2: 사진이 로그인한 사용자 소유인지 확인
@@ -513,12 +548,14 @@ app.post("/api/decorate/add", async (req, res) => {
         }
 
         // Fix 1: 클라이언트 totalPrice 대신 서버에서 직접 가격 계산
-        const [itemRows] = await db.promise().query(
-            "SELECT id, price FROM items WHERE id IN (?)",
-            [itemIds]
-        );
         const priceMap = {};
-        itemRows.forEach(item => { priceMap[item.id] = item.price; });
+        if (itemIds.length > 0) {
+            const [itemRows] = await db.promise().query(
+                "SELECT id, price FROM items WHERE id IN (?)",
+                [itemIds]
+            );
+            itemRows.forEach(item => { priceMap[item.id] = item.price; });
+        }
 
         const hasMissingItem = itemIds.some(id => priceMap[id] === undefined);
         if (hasMissingItem) {
@@ -532,15 +569,42 @@ app.post("/api/decorate/add", async (req, res) => {
             await connection.beginTransaction();
 
             // Fix 5: SELECT + UPDATE 분리 대신 WHERE points >= ? 로 원자적 차감
-            const [updateResult] = await connection.query(
-                "UPDATE users SET points = points - ? WHERE id = ? AND points >= ?",
-                [totalPrice, userId, totalPrice]
-            );
+            if (totalPrice > 0) {
+                const [updateResult] = await connection.query(
+                    "UPDATE users SET points = points - ? WHERE id = ? AND points >= ?",
+                    [totalPrice, userId, totalPrice]
+                );
 
-            if (updateResult.affectedRows === 0) {
-                await connection.rollback();
-                connection.release();
-                return res.status(400).json({ error: "포인트가 부족합니다." });
+                if (updateResult.affectedRows === 0) {
+                    await connection.rollback();
+                    connection.release();
+                    return res.status(400).json({ error: "포인트가 부족합니다." });
+                }
+            }
+
+            let deletedCount = 0;
+            if (decorationIdsToDelete.length > 0) {
+                const [deleteResult] = await connection.query(
+                    "DELETE FROM decorations WHERE photo_id = ? AND id IN (?)",
+                    [photoId, decorationIdsToDelete]
+                );
+                deletedCount = deleteResult.affectedRows || 0;
+            }
+
+            let updatedCount = 0;
+            for (const deco of decorationsToUpdate) {
+                const [updateDecorationResult] = await connection.query(
+                    "UPDATE decorations SET x = ?, y = ?, scale = ?, rotation = ? WHERE id = ? AND photo_id = ?",
+                    [
+                        Number(deco.x),
+                        Number(deco.y),
+                        Number(deco.scale),
+                        Number(deco.rotation ?? 0),
+                        Number(deco.id),
+                        photoId
+                    ]
+                );
+                updatedCount += updateDecorationResult.affectedRows || 0;
             }
 
             // 새로운 스티커들 DB에 저장 (기존 것은 그대로 유지)
@@ -564,7 +628,11 @@ app.post("/api/decorate/add", async (req, res) => {
 
             res.status(200).json({
                 success: true,
-                remainingPoints: updatedUser[0].points
+                remainingPoints: updatedUser[0].points,
+                addedCount: newDecorations.length,
+                updatedCount,
+                deletedCount,
+                totalPrice
             });
         } catch (error) {
             await connection.rollback();

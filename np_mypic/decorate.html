@@ -225,7 +225,7 @@
             }
         }
     </style>
-    <link rel="stylesheet" href="app.css?v=ui-fix-20260630-19">
+    <link rel="stylesheet" href="app.css?v=ui-fix-20260630-20">
 </head>
 <body class="editor-page">
     <button class="logout-btn" type="button" onclick="handleLogout()" aria-label="로그아웃">
@@ -286,6 +286,8 @@
         let stickerItems = {};
         let activeResizeHandle = null;
         let stickerHistory = [];
+        let deletedExistingDecorationIds = [];
+        let hasExistingStickerChange = false;
 
         // 페이지 로드 시 초기화
         window.addEventListener('DOMContentLoaded', async () => {
@@ -380,7 +382,7 @@
                         const emoji = Object.keys(stickerItems).find(emoji => stickerItems[emoji].id === deco.item_id);
                         if (emoji) {
                             console.log('기존 스티커 추가:', emoji);
-                            addSticker(emoji, deco.x, deco.y, deco.scale, true);
+                            addSticker(emoji, deco.x, deco.y, deco.scale, true, deco.id);
                         } else {
                             console.error('아이템을 찾을 수 없음:', deco.item_id);
                         }
@@ -481,7 +483,7 @@
         });
 
         // 스티커 추가 함수
-        function addSticker(emoji, x, y, scale, isExisting = false) {
+        function addSticker(emoji, x, y, scale, isExisting = false, decorationId = null) {
             const container = document.getElementById('imageContainer');
             const sticker = document.createElement('div');
             sticker.className = 'placed-sticker';
@@ -498,6 +500,9 @@
             if (isExisting) {
                 sticker.dataset.existing = 'true';
                 sticker.dataset.price = 0;
+                if (decorationId) {
+                    sticker.dataset.decorationId = decorationId;
+                }
             } else {
                 sticker.dataset.price = stickerItems[emoji]?.price || 0;
             }
@@ -561,6 +566,9 @@
 
             document.addEventListener('mouseup', () => {
                 if (isDragging || isResizing) {
+                    if (sticker.dataset.existing) {
+                        hasExistingStickerChange = true;
+                    }
                     isDragging = false;
                     isResizing = false;
                     sticker.classList.remove('resizing');
@@ -572,6 +580,7 @@
             sticker.addEventListener('dblclick', async (e) => {
                 e.stopPropagation();
                 if (await appConfirm('스티커를 삭제하시겠습니까?', { title: '스티커 삭제', confirmText: '삭제' })) {
+                    markExistingStickerDeleted(sticker);
                     stickerHistory = stickerHistory.filter(item => item !== sticker);
                     sticker.remove();
                     updateTotalPrice();
@@ -587,6 +596,16 @@
         }
 
         // 총 가격 계산
+        function markExistingStickerDeleted(sticker) {
+            if (!sticker.dataset.existing || !sticker.dataset.decorationId) return;
+
+            const decorationId = Number(sticker.dataset.decorationId);
+            if (Number.isInteger(decorationId) && !deletedExistingDecorationIds.includes(decorationId)) {
+                deletedExistingDecorationIds.push(decorationId);
+            }
+            hasExistingStickerChange = true;
+        }
+
         function updateTotalPrice() {
             let total = 0;
             
@@ -619,13 +638,14 @@
             const undoBtn = document.getElementById('undoBtn');
             const clearBtn = document.getElementById('clearBtn');
             const status = document.getElementById('stickerStatus');
+            const hasExistingChanges = deletedExistingDecorationIds.length > 0 || hasExistingStickerChange;
 
             undoBtn.disabled = newStickers.length === 0;
             clearBtn.disabled = newStickers.length === 0;
-            status.hidden = newStickers.length === 0;
+            status.hidden = newStickers.length === 0 && !hasExistingChanges;
             status.textContent = newStickers.length > 0
                 ? `새 스티커 ${newStickers.length}개 · ${total}P`
-                : '';
+                : hasExistingChanges ? '기존 스티커 변경됨' : '';
         }
 
         function undoLastSticker() {
@@ -653,18 +673,23 @@
         // 꾸미기 완료
         async function completeDecoration() {
             const totalPrice = updateTotalPrice();
+            const newStickers = getNewStickers();
+            const deletedDecorationIds = [...deletedExistingDecorationIds];
             
             if (totalPrice > currentPoints) {
                 await appAlert('포인트가 부족합니다.', { title: '포인트 부족', variant: 'error' });
                 return;
             }
 
-            if (totalPrice === 0) {
-                await appAlert('스티커를 추가해주세요.', { title: '저장할 내용 없음' });
+            if (newStickers.length === 0 && deletedDecorationIds.length === 0 && !hasExistingStickerChange) {
+                await appAlert('저장할 변경 사항이 없습니다.', { title: '변경 사항 없음' });
                 return;
             }
 
-            if (!(await appConfirm(`${totalPrice}P를 사용하여 스티커를 추가하시겠습니까?`, { title: '꾸미기 저장', confirmText: '저장' }))) {
+            const confirmMessage = totalPrice > 0
+                ? `${totalPrice}P를 사용하여 변경 사항을 저장하시겠습니까?`
+                : '기존 스티커 변경 사항을 저장하시겠습니까?';
+            if (!(await appConfirm(confirmMessage, { title: '꾸미기 저장', confirmText: '저장' }))) {
                 return;
             }
 
@@ -675,11 +700,20 @@
             try {
                 // 현재 새로 추가한 스티커만 수집 (기존 스티커 제외)
                 const decorations = [];
+                const updatedDecorations = [];
                 document.querySelectorAll('.placed-sticker').forEach(sticker => {
                     // 새로 추가한 스티커만 (기존 것은 이미 DB에 있음)
                     if (!sticker.dataset.existing) {
                         decorations.push({
                             item_id: parseInt(sticker.dataset.itemId),
+                            x: parseFloat(sticker.style.left),
+                            y: parseFloat(sticker.style.top),
+                            scale: parseFloat(sticker.dataset.scale) || 1.0,
+                            rotation: 0
+                        });
+                    } else if (sticker.dataset.decorationId) {
+                        updatedDecorations.push({
+                            id: parseInt(sticker.dataset.decorationId),
                             x: parseFloat(sticker.style.left),
                             y: parseFloat(sticker.style.top),
                             scale: parseFloat(sticker.dataset.scale) || 1.0,
@@ -696,7 +730,9 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         photoId: parseInt(photoId),
-                        decorations: decorations
+                        decorations: decorations,
+                        updatedDecorations: updatedDecorations,
+                        deletedDecorationIds: deletedDecorationIds
                     })
                 });
 
