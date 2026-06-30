@@ -8789,3 +8789,133 @@ html body.editor-page .decoration-section {
     align-self: stretch !important;
   }
 }
+
+/* Final v21: tighten back-button rhythm and keep button hover motion in place. */
+html body.detail-page {
+  --detail-pad: 22px;
+  --detail-control: 48px;
+  --detail-gap-top: 10px;
+}
+
+html body.editor-page {
+  --decorate-pad: 22px;
+  --decorate-control: 48px;
+  --decorate-gap-top: 10px;
+}
+
+html body.detail-page .container > .back-btn,
+html body.editor-page .container > .back-btn {
+  top: var(--detail-pad, var(--decorate-pad)) !important;
+  left: var(--detail-pad, var(--decorate-pad)) !important;
+}
+
+html body.editor-page .container > .back-btn {
+  top: var(--decorate-pad) !important;
+  left: var(--decorate-pad) !important;
+}
+
+html body.detail-page .points-display {
+  top: calc(var(--detail-pad) + 3px) !important;
+  right: var(--detail-pad) !important;
+}
+
+html body.detail-page .content {
+  height: calc(100% - var(--detail-control) - var(--detail-gap-top)) !important;
+  margin: calc(var(--detail-control) + var(--detail-gap-top)) 0 0 !important;
+  align-items: start !important;
+}
+
+html body.editor-page .content {
+  height: calc(100% - var(--decorate-control) - var(--decorate-gap-top)) !important;
+  margin: calc(var(--decorate-control) + var(--decorate-gap-top)) 0 0 !important;
+  align-items: start !important;
+}
+
+html body.detail-page .image-section,
+html body.editor-page .image-section {
+  align-content: start !important;
+  align-items: start !important;
+}
+
+html body.detail-page .image-container,
+html body.editor-page .image-container {
+  align-self: start !important;
+}
+
+@media (min-width: 761px) {
+  html body.detail-page .info-section,
+  html body.editor-page .decoration-section {
+    align-self: start !important;
+  }
+}
+
+html body button,
+html body .btn,
+html body .upload-btn,
+html body .upload-label,
+html body .action-btn,
+html body .complete-btn,
+html body .tool-btn,
+html body .search-btn,
+html body .back-btn,
+html body .logout-btn,
+html body .info-icon,
+html body .back-to-select,
+html body .app-modal-btn-primary,
+html body .app-modal-btn-ghost {
+  transform-origin: center center !important;
+  transition:
+    transform 0.16s ease,
+    background 0.16s ease,
+    background-color 0.16s ease,
+    border-color 0.16s ease,
+    box-shadow 0.16s ease,
+    opacity 0.16s ease !important;
+}
+
+html body button:hover:not(:disabled),
+html body .btn:hover:not(:disabled),
+html body .upload-btn:hover:not(:disabled),
+html body .upload-label:hover,
+html body .action-btn:hover:not(:disabled),
+html body .complete-btn:hover:not(:disabled),
+html body .tool-btn:hover:not(:disabled),
+html body .search-btn:hover:not(:disabled),
+html body .app-modal-btn-primary:hover:not(:disabled),
+html body .app-modal-btn-ghost:hover:not(:disabled),
+html body.memo-page .btn-cancel:hover,
+html body.memo-page .btn-save:hover:not(:disabled),
+html body.upload-page #uploadFinalBtn:hover:not(:disabled) {
+  transform: scale(1.025) !important;
+}
+
+html body .back-btn:hover:not(:disabled),
+html body .logout-btn:hover:not(:disabled),
+html body .info-icon:hover:not(:disabled),
+html body .back-to-select:hover:not(:disabled) {
+  transform: scale(1.05) !important;
+}
+
+@media (max-width: 760px) {
+  html body.detail-page {
+    --detail-pad: 12px;
+    --detail-control: 40px;
+    --detail-gap-top: 8px;
+  }
+
+  html body.editor-page {
+    --decorate-pad: 12px;
+    --decorate-control: 40px;
+    --decorate-gap-top: 8px;
+  }
+
+  html body.detail-page .content,
+  html body.editor-page .content {
+    justify-content: start !important;
+  }
+
+  html body.detail-page .points-display {
+    top: calc(var(--detail-pad) + 3px) !important;
+    right: var(--detail-pad) !important;
+  }
+}
