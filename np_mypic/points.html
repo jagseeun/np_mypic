@@ -155,7 +155,7 @@
             }
         }
     </style>
-    <link rel="stylesheet" href="app.css?v=ui-fix-20260630-21">
+    <link rel="stylesheet" href="app.css?v=ui-fix-20260630-23">
 </head>
 <body class="point-page">
     <button class="logout-btn" type="button" onclick="handleLogout()" aria-label="logout">
@@ -316,6 +316,12 @@
         }
 
         function goBack() {
+            const returnTo = new URLSearchParams(window.location.search).get('returnTo');
+            if (returnTo && !/^(?:[a-z]+:)?\/\//i.test(returnTo) && !returnTo.startsWith('/')) {
+                appNavigate(returnTo);
+                return;
+            }
+
             appNavigate('gallery.html');
         }
     </script>

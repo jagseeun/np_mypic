@@ -225,7 +225,7 @@
             }
         }
     </style>
-    <link rel="stylesheet" href="app.css?v=ui-fix-20260630-21">
+    <link rel="stylesheet" href="app.css?v=ui-fix-20260630-23">
 </head>
 <body class="editor-page">
     <button class="logout-btn" type="button" onclick="handleLogout()" aria-label="로그아웃">
@@ -288,6 +288,7 @@
         let stickerHistory = [];
         let deletedExistingDecorationIds = [];
         let hasExistingStickerChange = false;
+        let loadedExistingDecorationIds = [];
 
         // 페이지 로드 시 초기화
         window.addEventListener('DOMContentLoaded', async () => {
@@ -376,6 +377,9 @@
                 const res = await fetch(`/api/decorations/${photoId}`);
                 if (res.ok) {
                     const decorations = await res.json();
+                    loadedExistingDecorationIds = decorations
+                        .map(deco => Number(deco.id))
+                        .filter(Number.isInteger);
                     console.log('기존 꾸미기 데이터:', decorations);
                     decorations.forEach(deco => {
                         // item_id로 이모지 찾기
@@ -477,6 +481,12 @@
                 const rect = container.getBoundingClientRect();
                 const x = ((e.clientX - rect.left) / rect.width) * 100;
                 const y = ((e.clientY - rect.top) / rect.height) * 100;
+                const nextTotalPrice = updateTotalPrice() + getStickerPrice(selectedSticker);
+
+                if (nextTotalPrice > currentPoints) {
+                    await promptPointEarning();
+                    return;
+                }
 
                 addSticker(selectedSticker, x, y, 1.0);
             });
@@ -618,7 +628,7 @@
             
             const btn = document.getElementById('completeBtn');
             if (total > currentPoints) {
-                btn.disabled = true;
+                btn.disabled = false;
                 btn.textContent = `완료 (포인트 부족)`;
             } else {
                 btn.disabled = false;
@@ -633,19 +643,54 @@
             return Array.from(document.querySelectorAll('.placed-sticker')).filter(sticker => !sticker.dataset.existing);
         }
 
+        function getStickerPrice(emoji) {
+            return Number(stickerItems[emoji]?.price) || 0;
+        }
+
+        function getDeletedDecorationIdsForSave() {
+            const deletedIds = new Set(deletedExistingDecorationIds);
+            const visibleExistingIds = new Set(
+                Array.from(document.querySelectorAll('.placed-sticker[data-existing="true"][data-decoration-id]'))
+                    .map(sticker => Number(sticker.dataset.decorationId))
+                    .filter(Number.isInteger)
+            );
+
+            loadedExistingDecorationIds.forEach(id => {
+                if (!visibleExistingIds.has(id)) {
+                    deletedIds.add(id);
+                }
+            });
+
+            return Array.from(deletedIds);
+        }
+
+        async function promptPointEarning() {
+            const shouldEarn = await appConfirm('포인트가 부족합니다!\n클릭으로 포인트를 얻으시겠습니까?', {
+                title: '포인트 부족',
+                confirmText: '예',
+                cancelText: '아니오'
+            });
+
+            if (shouldEarn) {
+                const returnTo = encodeURIComponent(`decorate.html?photoId=${photoId}`);
+                appNavigate(`points.html?returnTo=${returnTo}`);
+            }
+
+            return shouldEarn;
+        }
+
         function updateToolButtons(total) {
             const newStickers = getNewStickers();
             const undoBtn = document.getElementById('undoBtn');
             const clearBtn = document.getElementById('clearBtn');
             const status = document.getElementById('stickerStatus');
-            const hasExistingChanges = deletedExistingDecorationIds.length > 0 || hasExistingStickerChange;
 
             undoBtn.disabled = newStickers.length === 0;
             clearBtn.disabled = newStickers.length === 0;
-            status.hidden = newStickers.length === 0 && !hasExistingChanges;
-            status.textContent = newStickers.length > 0
-                ? `새 스티커 ${newStickers.length}개 · ${total}P`
-                : hasExistingChanges ? '기존 스티커 변경됨' : '';
+            if (status) {
+                status.hidden = true;
+                status.textContent = '';
+            }
         }
 
         function undoLastSticker() {
@@ -674,10 +719,10 @@
         async function completeDecoration() {
             const totalPrice = updateTotalPrice();
             const newStickers = getNewStickers();
-            const deletedDecorationIds = [...deletedExistingDecorationIds];
+            const deletedDecorationIds = getDeletedDecorationIdsForSave();
             
             if (totalPrice > currentPoints) {
-                await appAlert('포인트가 부족합니다.', { title: '포인트 부족', variant: 'error' });
+                await promptPointEarning();
                 return;
             }
 
@@ -688,7 +733,7 @@
 
             const confirmMessage = totalPrice > 0
                 ? `${totalPrice}P를 사용하여 변경 사항을 저장하시겠습니까?`
-                : '기존 스티커 변경 사항을 저장하시겠습니까?';
+                : '변경 사항을 저장하시겠습니까?';
             if (!(await appConfirm(confirmMessage, { title: '꾸미기 저장', confirmText: '저장' }))) {
                 return;
             }
@@ -722,7 +767,7 @@
                     }
                 });
 
-                console.log('저장할 데이터:', { photoId, totalPrice, decorations });
+                console.log('저장할 데이터:', { photoId, totalPrice, decorations, updatedDecorations, deletedDecorationIds });
 
                 // 서버에 전송 (추가만!)
                 const res = await fetch('/api/decorate/add', {
@@ -742,15 +787,22 @@
                 }
 
                 const result = await res.json();
-                await appAlert(`사용 포인트: ${totalPrice}P\n남은 포인트: ${result.remainingPoints}P`, { title: '꾸미기 완료', variant: 'success' });
+                const successMessage = totalPrice > 0
+                    ? `사용 포인트: ${totalPrice}P\n남은 포인트: ${result.remainingPoints}P`
+                    : `변경 사항이 저장되었습니다.\n남은 포인트: ${result.remainingPoints}P`;
+                await appAlert(successMessage, { title: '꾸미기 완료', variant: 'success' });
                 
                 appNavigate(`detail.html?photoId=${photoId}`);
 
             } catch (err) {
                 console.error('완료 오류:', err);
-                await appAlert('저장 중 오류가 발생했습니다: ' + err.message, { title: '저장 실패', variant: 'error' });
                 btn.disabled = false;
                 btn.textContent = '완료';
+                if (String(err.message || '').includes('포인트')) {
+                    await promptPointEarning();
+                    return;
+                }
+                await appAlert('저장 중 오류가 발생했습니다: ' + err.message, { title: '저장 실패', variant: 'error' });
             }
         }
 

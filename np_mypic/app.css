@@ -8919,3 +8919,26 @@ html body .back-to-select:hover:not(:disabled) {
     right: var(--detail-pad) !important;
   }
 }
+
+/* Final v23: fill the card height and keep internal sticker state out of the UI. */
+html body.detail-page {
+  --detail-photo: 590px;
+}
+
+html body.editor-page {
+  --decorate-photo: 590px;
+}
+
+@media (max-width: 760px) {
+  html body.detail-page {
+    --detail-photo: 336px;
+  }
+
+  html body.editor-page {
+    --decorate-photo: 336px;
+  }
+}
+
+html body.editor-page .sticker-status {
+  display: none !important;
+}
