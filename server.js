@@ -18,6 +18,17 @@ const app = express();
 const isProduction = process.env.NODE_ENV === 'production';
 const sessionSecret = process.env.SESSION_SECRET || 'dev_secret_key_for_mypic';
 const { db, sessionStore, initializeDatabase } = require("./db");
+const UPLOAD_REWARD_POINTS = 30;
+const DEFAULT_DECORATION_ITEMS = [
+    { name: "리본", emoji: "🎀", price: 20 },
+    { name: "엄지척", emoji: "👍", price: 15 },
+    { name: "반짝 하트", emoji: "💖", price: 486 },
+    { name: "벚꽃", emoji: "🌸", price: 25 },
+    { name: "100점", emoji: "💯", price: 100 },
+    { name: "별", emoji: "⭐", price: 35 },
+    { name: "똥", emoji: "💩", price: 1 },
+    { name: "검은색 하트", emoji: "🖤", price: 45 }
+];
 
 if (isProduction) {
     app.set('trust proxy', 1);
@@ -85,6 +96,31 @@ const preventUiAssetCache = (res) => {
     res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, private");
     res.setHeader("Pragma", "no-cache");
     res.setHeader("Expires", "0");
+};
+
+const syncDefaultDecorationItems = async () => {
+    const [existingItems] = await db.promise().query(
+        "SELECT id, emoji FROM items ORDER BY id"
+    );
+
+    for (const [index, item] of DEFAULT_DECORATION_ITEMS.entries()) {
+        const expectedId = index + 1;
+        const exactEmojiMatch = existingItems.find(row => row.emoji === item.emoji);
+        const fallbackIdMatch = existingItems.find(row => Number(row.id) === expectedId);
+        const target = exactEmojiMatch || fallbackIdMatch;
+
+        if (target) {
+            await db.promise().query(
+                "UPDATE items SET name = ?, emoji = ?, price = ? WHERE id = ?",
+                [item.name, item.emoji, item.price, target.id]
+            );
+        } else {
+            await db.promise().query(
+                "INSERT INTO items (name, emoji, price) VALUES (?, ?, ?)",
+                [item.name, item.emoji, item.price]
+            );
+        }
+    }
 };
 
 app.use((req, res, next) => {
@@ -271,11 +307,13 @@ app.get("/api/user/points", async (req, res) => {
             return res.status(404).json({ error: "사용자를 찾을 수 없습니다." });
         }
         
+        const boosterExpiresAt = Number(req.session.pointBoosterExpiresAt) || 0;
+        const boosterMsRemaining = Math.max(0, boosterExpiresAt - Date.now());
+
         res.status(200).json({
             points: rows[0].points,
-            pointEarnStreak: Number(req.session.pointEarnStreak) || 0,
-            pointEarnStreakTarget: 5,
-            pointBoosterClicksRemaining: Number(req.session.pointBoosterClicksRemaining) || 0
+            pointBoosterActive: boosterMsRemaining > 0,
+            pointBoosterSecondsRemaining: Math.ceil(boosterMsRemaining / 1000)
         });
     } catch (error) {
         console.error("포인트 조회 오류:", error);
@@ -362,15 +400,16 @@ app.post("/upload", uploadSinglePhoto, async (req, res) => {
             [userId, imageUrl, memo]
         );
         
-        // 업로드 보상으로 포인트 20점 지급
+        // 업로드 보상으로 포인트 지급
         await db.promise().query(
-            "UPDATE users SET points = points + 20 WHERE id = ?",
-            [userId]
+            "UPDATE users SET points = points + ? WHERE id = ?",
+            [UPLOAD_REWARD_POINTS, userId]
         );
         
         res.status(201).json({ 
             message: "사진 업로드 및 포인트 적립 성공", 
             url: imageUrl,
+            awardedPoints: UPLOAD_REWARD_POINTS,
             photo_id: insertResult.insertId // 방금 저장된 사진 ID
         });
     } catch (err) {
@@ -692,7 +731,7 @@ app.put("/api/photos/:photoId/memo", async (req, res) => {
 app.post("/api/points/earn", async (req, res) => {
     const userId = req.session.userId;
     const STREAK_TARGET = 5;
-    const BOOSTER_REWARD_CLICKS = 10;
+    const BOOSTER_DURATION_MS = 10000;
 
     if (!userId) {
         return res.status(401).json({ error: "로그인이 필요합니다." });
@@ -701,21 +740,22 @@ app.post("/api/points/earn", async (req, res) => {
     const now = Date.now();
     const isBoosterClick = Boolean(req.body && req.body.booster);
     let pointEarnStreak = Number(req.session.pointEarnStreak) || 0;
-    let pointBoosterClicksRemaining = Number(req.session.pointBoosterClicksRemaining) || 0;
+    let pointBoosterExpiresAt = Number(req.session.pointBoosterExpiresAt) || 0;
+    let boosterMsRemaining = Math.max(0, pointBoosterExpiresAt - now);
+    let boosterActive = boosterMsRemaining > 0;
     let boosterActivated = false;
     let boosterUsed = false;
 
-    if (isBoosterClick && pointBoosterClicksRemaining <= 0) {
+    if (isBoosterClick && !boosterActive) {
+        req.session.pointBoosterExpiresAt = 0;
         return res.status(400).json({
-            error: "부스터가 활성화되어 있지 않습니다.",
-            pointEarnStreak,
-            pointEarnStreakTarget: STREAK_TARGET,
-            pointBoosterClicksRemaining: 0
+            error: "부스터 시간이 끝났습니다.",
+            pointBoosterActive: false,
+            pointBoosterSecondsRemaining: 0
         });
     }
 
     if (isBoosterClick) {
-        pointBoosterClicksRemaining -= 1;
         boosterUsed = true;
     }
     if (!isBoosterClick && req.session.lastPointEarnedAt && now - req.session.lastPointEarnedAt < 1000) {
@@ -729,13 +769,15 @@ app.post("/api/points/earn", async (req, res) => {
 
             if (pointEarnStreak >= STREAK_TARGET) {
                 pointEarnStreak = 0;
-                pointBoosterClicksRemaining += BOOSTER_REWARD_CLICKS;
+                pointBoosterExpiresAt = now + BOOSTER_DURATION_MS;
+                boosterMsRemaining = BOOSTER_DURATION_MS;
+                boosterActive = true;
                 boosterActivated = true;
             }
         }
 
         req.session.pointEarnStreak = pointEarnStreak;
-        req.session.pointBoosterClicksRemaining = pointBoosterClicksRemaining;
+        req.session.pointBoosterExpiresAt = pointBoosterExpiresAt;
 
         // 포인트 1점 추가
         await db.promise().query(
@@ -751,12 +793,13 @@ app.post("/api/points/earn", async (req, res) => {
 
         console.log(`포인트 적립 성공: User ${userId}, 새 포인트: ${rows[0].points}`);
 
+        boosterMsRemaining = Math.max(0, pointBoosterExpiresAt - Date.now());
+
         res.status(200).json({
             success: true,
             newPoints: rows[0].points,
-            pointEarnStreak,
-            pointEarnStreakTarget: STREAK_TARGET,
-            pointBoosterClicksRemaining,
+            pointBoosterActive: boosterMsRemaining > 0,
+            pointBoosterSecondsRemaining: Math.ceil(boosterMsRemaining / 1000),
             boosterActivated,
             boosterUsed
         });
@@ -768,6 +811,7 @@ app.post("/api/points/earn", async (req, res) => {
 // 서버 시작
 const PORT = process.env.PORT || 5000;
 initializeDatabase()
+    .then(syncDefaultDecorationItems)
     .then(() => {
         app.listen(PORT, () => {
           console.log(`✅ 서버 실행 중: http://localhost:${PORT}`);
