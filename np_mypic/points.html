@@ -155,7 +155,7 @@
             }
         }
     </style>
-    <link rel="stylesheet" href="app.css?v=ui-fix-20260630-23">
+    <link rel="stylesheet" href="app.css?v=ui-fix-20260630-24">
 </head>
 <body class="point-page">
     <button class="logout-btn" type="button" onclick="handleLogout()" aria-label="logout">
@@ -178,6 +178,21 @@
             <div class="progress-fill" id="progressFill"></div>
         </div>
 
+        <div class="booster-panel" id="boosterPanel" aria-live="polite">
+            <div class="booster-topline">
+                <span id="boosterMode">연속 적립</span>
+                <span id="boosterCount">0 / 5</span>
+            </div>
+            <div class="booster-pips" id="boosterPips">
+                <span></span>
+                <span></span>
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+            <div class="booster-hint" id="boosterHint">5번 연속으로 모으면 부스터가 켜져요</div>
+        </div>
+
         <div class="instruction">
             화면을 클릭해서<br>포인트를 모아보세요! 🎉
         </div>
@@ -191,6 +206,11 @@
     <script>
         let clickCount = 0;
         let currentPoints = 0;
+        let pointEarnStreak = 0;
+        let pointEarnStreakTarget = 5;
+        let pointBoosterClicksRemaining = 0;
+        const NORMAL_CLICK_TARGET = 10;
+        const BOOSTER_REWARD_CLICKS = 10;
         let isEarning = false; // Fix 3: 중복 적립 방지 플래그
         const emojis = ['💖', '⭐', '🎀', '🌸', '💯', '👍', '✨', '🎉'];
 
@@ -205,8 +225,7 @@
                 const res = await fetch('/api/user/points');
                 if (res.ok) {
                     const data = await res.json();
-                    currentPoints = data.points;
-                    document.getElementById('userPoints').textContent = currentPoints;
+                    applyPointState(data);
                 }
             } catch (err) {
                 console.error('포인트 조회 오류:', err);
@@ -215,12 +234,20 @@
 
         // 화면 클릭 이벤트
         document.body.addEventListener('click', async (e) => {
-            if (e.target.closest('.back-btn, .logout-btn')) {
+            if (e.target.closest('.back-btn, .logout-btn, .points-display, .app-modal-root')) {
                 return;
             }
 
             // Fix 3: 적립 요청 중에는 클릭 무시
             if (isEarning) return;
+
+            if (pointBoosterClicksRemaining > 0) {
+                isEarning = true;
+                createEmojiParticle(e.clientX, e.clientY, true);
+                await earnPoint({ booster: true });
+                isEarning = false;
+                return;
+            }
 
             clickCount++;
             updateClickDisplay();
@@ -229,7 +256,7 @@
             createEmojiParticle(e.clientX, e.clientY);
 
             // 10번 클릭 달성
-            if (clickCount >= 10) {
+            if (clickCount >= NORMAL_CLICK_TARGET) {
                 isEarning = true;
                 clickCount = 0;
                 updateClickDisplay();
@@ -240,15 +267,66 @@
 
         // 클릭 수 UI 업데이트
         function updateClickDisplay() {
-            document.getElementById('clickCount').textContent = clickCount;
-            const progress = (clickCount / 10) * 100;
+            const counter = document.querySelector('.click-counter');
+            const isBoosterActive = pointBoosterClicksRemaining > 0;
+
+            if (isBoosterActive) {
+                counter.innerHTML = `<span id="clickCount">${pointBoosterClicksRemaining}</span>회 부스터`;
+            } else {
+                counter.innerHTML = `<span id="clickCount">${clickCount}</span> / ${NORMAL_CLICK_TARGET} 클릭`;
+            }
+
+            const progress = isBoosterActive
+                ? (pointBoosterClicksRemaining / BOOSTER_REWARD_CLICKS) * 100
+                : (clickCount / NORMAL_CLICK_TARGET) * 100;
             document.getElementById('progressFill').style.width = progress + '%';
+            updateBoosterDisplay();
         }
 
         // 이모지 파티클 생성
-        function createEmojiParticle(x, y) {
+        function applyPointState(data) {
+            currentPoints = Number(data.newPoints ?? data.points ?? currentPoints) || 0;
+            pointEarnStreak = Number(data.pointEarnStreak) || 0;
+            pointEarnStreakTarget = Number(data.pointEarnStreakTarget) || 5;
+            pointBoosterClicksRemaining = Number(data.pointBoosterClicksRemaining) || 0;
+
+            document.getElementById('userPoints').textContent = currentPoints;
+            updateClickDisplay();
+        }
+
+        function updateBoosterDisplay() {
+            const panel = document.getElementById('boosterPanel');
+            const mode = document.getElementById('boosterMode');
+            const count = document.getElementById('boosterCount');
+            const hint = document.getElementById('boosterHint');
+            const pips = Array.from(document.querySelectorAll('#boosterPips span'));
+            const isBoosterActive = pointBoosterClicksRemaining > 0;
+
+            document.body.classList.toggle('booster-active', isBoosterActive);
+            panel.classList.toggle('is-active', isBoosterActive);
+
+            if (isBoosterActive) {
+                mode.textContent = '부스터';
+                count.textContent = `${pointBoosterClicksRemaining}회 남음`;
+                hint.textContent = '클릭 1번 = 1포인트';
+                pips.forEach(pip => pip.classList.add('is-filled'));
+                return;
+            }
+
+            mode.textContent = '연속 적립';
+            count.textContent = `${pointEarnStreak} / ${pointEarnStreakTarget}`;
+            hint.textContent = `${Math.max(pointEarnStreakTarget - pointEarnStreak, 0)}번 더 모으면 부스터`;
+            pips.forEach((pip, index) => {
+                pip.classList.toggle('is-filled', index < pointEarnStreak);
+            });
+        }
+
+        function createEmojiParticle(x, y, boosted = false) {
             const particle = document.createElement('div');
             particle.className = 'emoji-particle';
+            if (boosted) {
+                particle.classList.add('is-boosted');
+            }
             particle.textContent = emojis[Math.floor(Math.random() * emojis.length)];
             particle.style.left = x + 'px';
             particle.style.top = y + 'px';
@@ -260,20 +338,21 @@
         }
 
         // 포인트 획득
-        async function earnPoint() {
+        async function earnPoint(options = {}) {
             try {
+                const isBoosterClick = Boolean(options.booster);
                 const res = await fetch('/api/points/earn', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' }
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ booster: isBoosterClick })
                 });
 
                 if (res.ok) {
                     const data = await res.json();
-                    currentPoints = data.newPoints;
-                    document.getElementById('userPoints').textContent = currentPoints;
+                    applyPointState(data);
 
                     // 성공 메시지 표시
-                    showSuccessMessage();
+                    showSuccessMessage(data);
                 } else {
                     const error = await res.json();
                     await appAlert(error.error || '포인트 적립 실패', { title: '적립 실패', variant: 'error' });
@@ -285,8 +364,17 @@
         }
 
         // 성공 메시지 표시
-        function showSuccessMessage() {
+        function showSuccessMessage(data = {}) {
             const msg = document.getElementById('successMessage');
+            if (data.boosterActivated) {
+                msg.textContent = '+1 포인트! 부스터 시작';
+                document.body.classList.add('booster-flash');
+                setTimeout(() => document.body.classList.remove('booster-flash'), 900);
+            } else if (data.boosterUsed) {
+                msg.textContent = '+1 부스터 포인트';
+            } else {
+                msg.textContent = '+1 포인트 획득';
+            }
             msg.classList.add('show');
 
             // 화면 전체에 이모지 폭죽
@@ -294,7 +382,7 @@
                 setTimeout(() => {
                     const x = Math.random() * window.innerWidth;
                     const y = Math.random() * window.innerHeight;
-                    createEmojiParticle(x, y);
+                    createEmojiParticle(x, y, data.boosterActivated || data.boosterUsed);
                 }, i * 50);
             }
 

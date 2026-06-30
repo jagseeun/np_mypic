@@ -8942,3 +8942,120 @@ html body.editor-page {
 html body.editor-page .sticker-status {
   display: none !important;
 }
+
+/* Final v24: add point booster state without changing the page shell. */
+html body.point-page .main-content {
+  width: min(430px, calc(100vw - 32px)) !important;
+}
+
+html body.point-page .booster-panel {
+  width: min(328px, calc(100vw - 72px)) !important;
+  max-width: min(328px, calc(100vw - 72px)) !important;
+  margin: 0 auto 16px !important;
+  padding: 12px 14px !important;
+  border: 1px solid rgba(74, 155, 142, 0.26) !important;
+  border-radius: 8px !important;
+  background: rgba(255, 255, 255, 0.78) !important;
+  box-shadow: 0 8px 20px rgba(38, 50, 63, 0.08) !important;
+  display: grid !important;
+  gap: 8px !important;
+}
+
+html body.point-page .progress-bar,
+html body.point-page .instruction {
+  width: min(328px, calc(100vw - 72px)) !important;
+  max-width: min(328px, calc(100vw - 72px)) !important;
+}
+
+html body.point-page .booster-topline {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  gap: 12px !important;
+  color: var(--mypic-mint-dark) !important;
+  font-size: 1.22rem !important;
+  line-height: 1 !important;
+}
+
+html body.point-page .booster-pips {
+  display: grid !important;
+  grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+  gap: 7px !important;
+}
+
+html body.point-page .booster-pips span {
+  height: 9px !important;
+  border-radius: 999px !important;
+  background: rgba(74, 155, 142, 0.16) !important;
+  overflow: hidden !important;
+}
+
+html body.point-page .booster-pips span.is-filled {
+  background: linear-gradient(90deg, #4a9b8e, #ef7565) !important;
+}
+
+html body.point-page .booster-hint {
+  min-height: 18px !important;
+  color: #315f59 !important;
+  font-size: 1.02rem !important;
+  line-height: 1.15 !important;
+}
+
+html body.point-page .booster-panel.is-active {
+  border-color: rgba(239, 117, 101, 0.46) !important;
+  background: rgba(255, 255, 255, 0.9) !important;
+  box-shadow: 0 12px 26px rgba(239, 117, 101, 0.18) !important;
+}
+
+html body.point-page.booster-active .progress-fill {
+  background: linear-gradient(90deg, #ef7565, #ffd166, #4a9b8e) !important;
+}
+
+html body.point-page.booster-active .click-counter {
+  color: #d65f55 !important;
+  text-shadow: 0 2px 0 rgba(255, 255, 255, 0.62) !important;
+}
+
+html body.point-page .emoji-particle.is-boosted {
+  color: #ef7565 !important;
+  animation-duration: 1s !important;
+  filter: drop-shadow(0 6px 10px rgba(239, 117, 101, 0.24));
+}
+
+html body.point-page.booster-flash .main-content {
+  animation: point-booster-pop 0.75s ease both;
+}
+
+@keyframes point-booster-pop {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+
+  42% {
+    transform: scale(1.035);
+  }
+}
+
+@media (max-width: 760px) {
+  html body.point-page .booster-panel {
+    width: min(318px, calc(100vw - 72px)) !important;
+    max-width: min(318px, calc(100vw - 72px)) !important;
+    margin-bottom: 12px !important;
+    padding: 10px 12px !important;
+  }
+
+  html body.point-page .progress-bar,
+  html body.point-page .instruction {
+    width: min(318px, calc(100vw - 72px)) !important;
+    max-width: min(318px, calc(100vw - 72px)) !important;
+  }
+
+  html body.point-page .booster-topline {
+    font-size: 1.08rem !important;
+  }
+
+  html body.point-page .booster-hint {
+    font-size: 0.94rem !important;
+  }
+}

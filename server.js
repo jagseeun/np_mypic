@@ -271,7 +271,12 @@ app.get("/api/user/points", async (req, res) => {
             return res.status(404).json({ error: "사용자를 찾을 수 없습니다." });
         }
         
-        res.status(200).json({ points: rows[0].points });
+        res.status(200).json({
+            points: rows[0].points,
+            pointEarnStreak: Number(req.session.pointEarnStreak) || 0,
+            pointEarnStreakTarget: 5,
+            pointBoosterClicksRemaining: Number(req.session.pointBoosterClicksRemaining) || 0
+        });
     } catch (error) {
         console.error("포인트 조회 오류:", error);
         res.status(500).json({ error: "포인트를 불러오는 중 오류가 발생했습니다." });
@@ -683,21 +688,54 @@ app.put("/api/photos/:photoId/memo", async (req, res) => {
     }
 });
 
-// 포인트 적립 (10번 클릭 = 1포인트)
+// 포인트 적립 (기본 10번 클릭 = 1포인트, 부스터 중에는 1번 클릭 = 1포인트)
 app.post("/api/points/earn", async (req, res) => {
     const userId = req.session.userId;
+    const STREAK_TARGET = 5;
+    const BOOSTER_REWARD_CLICKS = 10;
 
     if (!userId) {
         return res.status(401).json({ error: "로그인이 필요합니다." });
     }
 
     const now = Date.now();
-    if (req.session.lastPointEarnedAt && now - req.session.lastPointEarnedAt < 1000) {
+    const isBoosterClick = Boolean(req.body && req.body.booster);
+    let pointEarnStreak = Number(req.session.pointEarnStreak) || 0;
+    let pointBoosterClicksRemaining = Number(req.session.pointBoosterClicksRemaining) || 0;
+    let boosterActivated = false;
+    let boosterUsed = false;
+
+    if (isBoosterClick && pointBoosterClicksRemaining <= 0) {
+        return res.status(400).json({
+            error: "부스터가 활성화되어 있지 않습니다.",
+            pointEarnStreak,
+            pointEarnStreakTarget: STREAK_TARGET,
+            pointBoosterClicksRemaining: 0
+        });
+    }
+
+    if (isBoosterClick) {
+        pointBoosterClicksRemaining -= 1;
+        boosterUsed = true;
+    }
+    if (!isBoosterClick && req.session.lastPointEarnedAt && now - req.session.lastPointEarnedAt < 1000) {
         return res.status(429).json({ error: "잠시 후 다시 포인트를 받을 수 있습니다." });
     }
 
     try {
-        req.session.lastPointEarnedAt = now;
+        if (!isBoosterClick) {
+            req.session.lastPointEarnedAt = now;
+            pointEarnStreak += 1;
+
+            if (pointEarnStreak >= STREAK_TARGET) {
+                pointEarnStreak = 0;
+                pointBoosterClicksRemaining += BOOSTER_REWARD_CLICKS;
+                boosterActivated = true;
+            }
+        }
+
+        req.session.pointEarnStreak = pointEarnStreak;
+        req.session.pointBoosterClicksRemaining = pointBoosterClicksRemaining;
 
         // 포인트 1점 추가
         await db.promise().query(
@@ -715,7 +753,12 @@ app.post("/api/points/earn", async (req, res) => {
 
         res.status(200).json({
             success: true,
-            newPoints: rows[0].points
+            newPoints: rows[0].points,
+            pointEarnStreak,
+            pointEarnStreakTarget: STREAK_TARGET,
+            pointBoosterClicksRemaining,
+            boosterActivated,
+            boosterUsed
         });
     } catch (error) {
         console.error("포인트 적립 오류:", error);
