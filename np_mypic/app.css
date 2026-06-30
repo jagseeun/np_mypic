@@ -8371,3 +8371,344 @@ html body.editor-page .decorate-help-link {
     overflow: hidden !important;
   }
 }
+
+/* Final v17: whole-screen balance pass for detail and decorate. */
+html body.editor-page {
+  --decorate-photo: 480px;
+  --decorate-side: 390px;
+  --decorate-action: 58px;
+}
+
+html body.editor-page .points-display {
+  position: static !important;
+  inset: auto !important;
+  width: auto !important;
+  min-width: 0 !important;
+  max-width: none !important;
+  height: 44px !important;
+  min-height: 44px !important;
+  margin: 0 !important;
+  padding: 8px 14px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  border: 1px solid rgba(31, 107, 95, 0.18) !important;
+  border-radius: 8px !important;
+  background: rgba(255, 255, 255, 0.78) !important;
+  color: var(--mypic-mint-dark) !important;
+  font-size: 1.3rem !important;
+  line-height: 1 !important;
+  white-space: nowrap !important;
+  box-shadow: none !important;
+  transform: none !important;
+}
+
+html body.editor-page .content {
+  grid-template-columns: minmax(0, var(--decorate-photo)) minmax(0, var(--decorate-side)) !important;
+  align-items: center !important;
+}
+
+html body.editor-page .decoration-section {
+  height: min(var(--decorate-photo), 100%) !important;
+  align-self: center !important;
+  grid-template-rows: 44px minmax(0, 1fr) var(--decorate-action) var(--decorate-action) 26px !important;
+}
+
+html body.editor-page .decoration-summary {
+  height: 44px !important;
+  min-height: 44px !important;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) !important;
+}
+
+html body.editor-page .price-info {
+  height: 44px !important;
+  min-height: 44px !important;
+  font-size: 1.3rem !important;
+}
+
+html body.editor-page .tool-btn {
+  font-size: 1.04rem !important;
+}
+
+html body.editor-page .complete-btn {
+  font-size: 1.34rem !important;
+}
+
+html body.editor-page .decorate-help-link {
+  height: 26px !important;
+  min-height: 26px !important;
+  font-size: 1.08rem !important;
+  line-height: 26px !important;
+}
+
+html body.detail-page {
+  --detail-photo: 520px;
+  --detail-side: 390px;
+  --detail-action: 58px;
+}
+
+html body.detail-page .container {
+  height: min(700px, calc(100dvh - var(--v10-logo-bottom) - 28px)) !important;
+  max-height: calc(100dvh - var(--v10-logo-bottom) - 28px) !important;
+}
+
+html body.detail-page .content {
+  height: calc(100% - 78px) !important;
+  margin: 78px 0 0 !important;
+  grid-template-columns: minmax(0, var(--detail-photo)) minmax(0, var(--detail-side)) !important;
+  gap: 34px !important;
+  align-items: center !important;
+}
+
+html body.detail-page .image-section {
+  height: var(--detail-photo) !important;
+  display: grid !important;
+  grid-template-rows: minmax(0, 1fr) !important;
+  align-content: center !important;
+}
+
+html body.detail-page .image-title {
+  display: none !important;
+}
+
+html body.detail-page .image-container {
+  width: min(100%, var(--detail-photo)) !important;
+  max-width: var(--detail-photo) !important;
+  height: min(var(--detail-photo), 100%) !important;
+  max-height: var(--detail-photo) !important;
+}
+
+html body.detail-page .info-section {
+  height: min(var(--detail-photo), 100%) !important;
+  align-self: center !important;
+  display: grid !important;
+  grid-template-rows: minmax(0, 1fr) var(--detail-action) var(--detail-action) !important;
+  gap: 12px !important;
+}
+
+html body.detail-page .info-box {
+  height: 100% !important;
+  min-height: 0 !important;
+  padding: 22px !important;
+  gap: 12px !important;
+}
+
+html body.detail-page .info-title {
+  font-size: 1.56rem !important;
+}
+
+html body.detail-page .info-item {
+  font-size: 1.4rem !important;
+  line-height: 1.42 !important;
+}
+
+html body.detail-page .action-btn {
+  height: var(--detail-action) !important;
+  min-height: var(--detail-action) !important;
+  font-size: 1.34rem !important;
+}
+
+@media (max-width: 760px) {
+  html body.editor-page {
+    --decorate-photo: 276px;
+    --decorate-action: 44px;
+  }
+
+  html body.editor-page .content {
+    margin: calc(var(--decorate-control) + var(--decorate-gap-top)) 0 0 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 10px !important;
+    align-items: stretch !important;
+  }
+
+  html body.editor-page .decoration-section {
+    flex: 0 0 272px !important;
+    height: 272px !important;
+    min-height: 272px !important;
+    grid-template-rows: 38px 98px var(--decorate-action) 44px 20px !important;
+    gap: 8px !important;
+  }
+
+  html body.editor-page .decoration-summary {
+    height: 38px !important;
+    min-height: 38px !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 8px !important;
+  }
+
+  html body.editor-page .price-info,
+  html body.editor-page .points-display {
+    height: 38px !important;
+    min-height: 38px !important;
+    padding: 6px 8px !important;
+    font-size: 1.1rem !important;
+  }
+
+  html body.editor-page .stickers-grid {
+    height: 98px !important;
+    min-height: 98px !important;
+  }
+
+  html body.editor-page .tool-btn {
+    font-size: 0.92rem !important;
+  }
+
+  html body.editor-page .complete-btn {
+    font-size: 1.2rem !important;
+  }
+
+  html body.editor-page .decorate-help-link {
+    height: 20px !important;
+    min-height: 20px !important;
+    font-size: 0.92rem !important;
+    line-height: 20px !important;
+  }
+
+  html body.detail-page {
+    --detail-photo: 316px;
+    --detail-action: 48px;
+  }
+
+  html body.detail-page .container {
+    height: min(var(--v10-card-height), calc(100dvh - var(--v10-logo-bottom) - 24px)) !important;
+    max-height: calc(100dvh - var(--v10-logo-bottom) - 24px) !important;
+  }
+
+  html body.detail-page .content {
+    height: auto !important;
+    margin: calc(var(--detail-control) + var(--detail-gap-top)) 0 0 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 10px !important;
+    align-items: stretch !important;
+    overflow: visible !important;
+  }
+
+  html body.detail-page .image-section {
+    height: var(--detail-photo) !important;
+    flex: 0 0 var(--detail-photo) !important;
+    display: grid !important;
+    grid-template-rows: var(--detail-photo) !important;
+    justify-items: center !important;
+  }
+
+  html body.detail-page .image-container {
+    width: min(100%, var(--detail-photo)) !important;
+    max-width: var(--detail-photo) !important;
+    height: var(--detail-photo) !important;
+    max-height: var(--detail-photo) !important;
+  }
+
+  html body.detail-page .info-section {
+    flex: 0 0 272px !important;
+    height: 272px !important;
+    min-height: 272px !important;
+    grid-template-columns: 1fr 1fr !important;
+    grid-template-rows: minmax(0, 1fr) var(--detail-action) !important;
+    gap: 8px !important;
+  }
+
+  html body.detail-page .info-box {
+    grid-column: 1 / -1 !important;
+    padding: 16px !important;
+  }
+
+  html body.detail-page .info-title {
+    font-size: 1.42rem !important;
+  }
+
+  html body.detail-page .info-item {
+    font-size: 1.24rem !important;
+    line-height: 1.36 !important;
+  }
+
+  html body.detail-page .action-btn {
+    height: var(--detail-action) !important;
+    min-height: var(--detail-action) !important;
+    font-size: 1.12rem !important;
+  }
+}
+
+/* Final v18: align decorate controls to the photo and keep detail mobile inside the card. */
+html body.editor-page .container {
+  height: min(700px, calc(100dvh - var(--v10-logo-bottom) - 28px)) !important;
+  max-height: calc(100dvh - var(--v10-logo-bottom) - 28px) !important;
+}
+
+html body.editor-page .content {
+  height: calc(100% - 78px) !important;
+  align-items: start !important;
+}
+
+html body.editor-page .image-section {
+  height: calc(32px + 10px + var(--decorate-photo)) !important;
+  grid-template-rows: 32px var(--decorate-photo) !important;
+}
+
+html body.editor-page .image-container {
+  height: var(--decorate-photo) !important;
+  max-height: var(--decorate-photo) !important;
+}
+
+html body.editor-page .decoration-section {
+  height: var(--decorate-photo) !important;
+  min-height: var(--decorate-photo) !important;
+  margin-top: 42px !important;
+  align-self: start !important;
+}
+
+@media (max-width: 760px) {
+  html body.editor-page .container {
+    height: min(var(--v10-card-height), calc(100dvh - var(--v10-logo-bottom) - 24px)) !important;
+    max-height: calc(100dvh - var(--v10-logo-bottom) - 24px) !important;
+  }
+
+  html body.editor-page .content {
+    height: auto !important;
+  }
+
+  html body.editor-page .image-section {
+    height: auto !important;
+    grid-template-rows: 30px var(--decorate-photo) !important;
+  }
+
+  html body.editor-page .decoration-section {
+    height: 272px !important;
+    min-height: 272px !important;
+    margin-top: 0 !important;
+  }
+
+  html body.detail-page .container {
+    display: block !important;
+  }
+}
+
+/* Final v19: keep decorate price and points readable on one line. */
+html body.editor-page .decoration-summary {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) !important;
+}
+
+html body.editor-page .price-info {
+  grid-column: 1 !important;
+  width: 100% !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 4px !important;
+  white-space: nowrap !important;
+}
+
+html body.editor-page .points-display {
+  grid-column: 2 !important;
+  width: 100% !important;
+  white-space: nowrap !important;
+}
+
+@media (max-width: 760px) {
+  html body.editor-page .price-info,
+  html body.editor-page .points-display {
+    width: 100% !important;
+    font-size: 1.02rem !important;
+  }
+}
