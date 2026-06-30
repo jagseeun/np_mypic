@@ -8991,3 +8991,172 @@ html body.point-page.booster-flash .main-content {
     max-width: min(318px, calc(100vw - 72px)) !important;
   }
 }
+
+/* Final v26: favorite photos in gallery and detail. */
+html body.gallery-page .search-container {
+  align-items: center !important;
+}
+
+html body.gallery-page .search-input {
+  order: 1;
+}
+
+html body.gallery-page .search-btn {
+  order: 2;
+}
+
+html body.gallery-page .favorite-filter-btn {
+  order: 3;
+  width: 42px !important;
+  height: 42px !important;
+  flex: 0 0 42px !important;
+  border: 2px solid rgba(74, 155, 142, 0.34) !important;
+  border-radius: 999px !important;
+  background: rgba(255, 255, 255, 0.88) !important;
+  color: #4a9b8e !important;
+  display: inline-grid !important;
+  place-items: center !important;
+  font-size: 1.45rem !important;
+  line-height: 1 !important;
+  cursor: pointer !important;
+  box-shadow: 0 8px 18px rgba(38, 50, 63, 0.1) !important;
+  transition: transform 0.16s ease, background 0.16s ease, color 0.16s ease !important;
+}
+
+html body.gallery-page .favorite-filter-btn:hover,
+html body.gallery-page .favorite-filter-btn.is-active {
+  background: #ffd166 !important;
+  border-color: rgba(239, 117, 101, 0.42) !important;
+  color: #315f59 !important;
+  transform: scale(1.06) !important;
+}
+
+html body.gallery-page .clear-search-btn {
+  order: 4;
+}
+
+html body.gallery-page .image-item {
+  isolation: isolate;
+}
+
+html body.gallery-page .photo-favorite-btn {
+  position: absolute !important;
+  top: 8px !important;
+  right: 8px !important;
+  z-index: 6 !important;
+  width: 38px !important;
+  height: 38px !important;
+  border: 2px solid rgba(255, 255, 255, 0.92) !important;
+  border-radius: 999px !important;
+  background: rgba(38, 50, 63, 0.4) !important;
+  color: rgba(255, 255, 255, 0.92) !important;
+  display: grid !important;
+  place-items: center !important;
+  font-size: 1.45rem !important;
+  line-height: 1 !important;
+  cursor: pointer !important;
+  box-shadow: 0 8px 18px rgba(38, 50, 63, 0.2) !important;
+  transition: transform 0.16s ease, background 0.16s ease, color 0.16s ease !important;
+}
+
+html body.gallery-page .photo-favorite-btn:hover,
+html body.gallery-page .photo-favorite-btn.is-active {
+  background: #ffd166 !important;
+  color: #315f59 !important;
+  transform: scale(1.08) !important;
+}
+
+html body.gallery-page .photo-favorite-btn:disabled {
+  opacity: 0.68 !important;
+  cursor: progress !important;
+}
+
+html body.detail-page .favorite-detail-btn {
+  width: 100% !important;
+  height: var(--detail-action, 56px) !important;
+  min-height: 56px !important;
+  max-height: var(--detail-action, 56px) !important;
+  aspect-ratio: auto !important;
+  border: 2px solid rgba(74, 155, 142, 0.26) !important;
+  border-radius: 999px !important;
+  background: rgba(255, 255, 255, 0.9) !important;
+  color: #315f59 !important;
+  font-size: 1.5rem !important;
+  line-height: 1 !important;
+  font-weight: 800 !important;
+  cursor: pointer !important;
+  box-shadow: 0 10px 22px rgba(38, 50, 63, 0.1) !important;
+  transition: transform 0.16s ease, background 0.16s ease !important;
+}
+
+html body.detail-page .info-section {
+  grid-template-rows: var(--detail-action) minmax(0, 1fr) var(--detail-action) var(--detail-action) !important;
+}
+
+html body.detail-page .favorite-detail-btn {
+  grid-row: 1 !important;
+}
+
+html body.detail-page .info-box {
+  grid-row: 2 !important;
+}
+
+html body.detail-page .favorite-detail-btn:hover,
+html body.detail-page .favorite-detail-btn.is-active {
+  background: #ffd166 !important;
+  transform: scale(1.02) !important;
+}
+
+html body.detail-page .favorite-detail-btn:disabled {
+  opacity: 0.68 !important;
+  cursor: progress !important;
+}
+
+@media (max-width: 760px) {
+  html body.gallery-page .search-container {
+    grid-template-columns: minmax(0, 1fr) 44px 44px !important;
+  }
+
+  html body.gallery-page .favorite-filter-btn {
+    width: 44px !important;
+    height: 44px !important;
+    flex-basis: 44px !important;
+  }
+
+  html body.gallery-page .clear-search-btn.show {
+    grid-column: 1 / -1 !important;
+    width: 100% !important;
+    justify-self: stretch !important;
+  }
+
+  html body.gallery-page .photo-favorite-btn {
+    top: 6px !important;
+    right: 6px !important;
+    width: 34px !important;
+    height: 34px !important;
+    font-size: 1.25rem !important;
+  }
+
+  html body.detail-page .favorite-detail-btn {
+    grid-column: 1 / -1 !important;
+    grid-row: 1 !important;
+    height: var(--detail-action) !important;
+    min-height: 48px !important;
+    max-height: var(--detail-action) !important;
+    font-size: 1.25rem !important;
+  }
+
+  html body.detail-page .info-section {
+    grid-template-columns: 1fr 1fr !important;
+    grid-template-rows: var(--detail-action) minmax(0, 1fr) var(--detail-action) !important;
+  }
+
+  html body.detail-page .info-box {
+    grid-column: 1 / -1 !important;
+    grid-row: 2 !important;
+  }
+
+  html body.detail-page .action-btn {
+    grid-row: 3 !important;
+  }
+}

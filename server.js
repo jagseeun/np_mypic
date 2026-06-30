@@ -16,6 +16,8 @@ cloudinary.config({
 
 const app = express();
 const isProduction = process.env.NODE_ENV === 'production';
+const dbClient = (process.env.DB_CLIENT || "").toLowerCase();
+const usesPostgres = dbClient === "postgres" || dbClient === "postgresql" || Boolean(process.env.DATABASE_URL);
 const sessionSecret = process.env.SESSION_SECRET || 'dev_secret_key_for_mypic';
 const { db, sessionStore, initializeDatabase } = require("./db");
 const UPLOAD_REWARD_POINTS = 30;
@@ -120,6 +122,26 @@ const syncDefaultDecorationItems = async () => {
                 [item.name, item.emoji, item.price]
             );
         }
+    }
+};
+
+const ensurePhotoFavoriteColumn = async () => {
+    if (usesPostgres) {
+        await db.promise().query(
+            "ALTER TABLE photos ADD COLUMN IF NOT EXISTS is_favorite BOOLEAN NOT NULL DEFAULT FALSE"
+        );
+        return;
+    }
+
+    try {
+        await db.promise().query(
+            "ALTER TABLE photos ADD COLUMN is_favorite TINYINT(1) NOT NULL DEFAULT 0"
+        );
+    } catch (error) {
+        if (error && (error.code === "ER_DUP_FIELDNAME" || /duplicate column/i.test(error.message || ""))) {
+            return;
+        }
+        throw error;
     }
 };
 
@@ -332,7 +354,7 @@ app.get("/api/photos/me", async (req, res) => {
     try {
         // 최신순으로 내 사진들 가져오기 (created_at DESC)
         const [photos] = await db.promise().query(
-            "SELECT id, imageUrl, memo, created_at FROM photos WHERE user_id = ? ORDER BY created_at DESC",
+            "SELECT id, imageUrl, memo, created_at, is_favorite FROM photos WHERE user_id = ? ORDER BY is_favorite DESC, created_at DESC",
             [userId]
         );
         
@@ -359,7 +381,7 @@ app.get("/api/photos/search", async (req, res) => {
     try {
         // memo 필드에서 키워드를 포함하는 사진 검색 (LIKE 사용)
         const [photos] = await db.promise().query(
-            "SELECT id, imageUrl, memo, created_at FROM photos WHERE user_id = ? AND memo LIKE ? ORDER BY created_at DESC",
+            "SELECT id, imageUrl, memo, created_at, is_favorite FROM photos WHERE user_id = ? AND memo LIKE ? ORDER BY is_favorite DESC, created_at DESC",
             [userId, `%${keyword}%`]
         );
         
@@ -477,7 +499,7 @@ app.get("/api/photos/:photoId", async (req, res) => {
     try {
         // 메모와 업로드 날짜까지 포함해서 조회
         const [rows] = await db.promise().query(
-            "SELECT id, imageUrl, memo, created_at FROM photos WHERE id = ? AND user_id = ?",
+            "SELECT id, imageUrl, memo, created_at, is_favorite FROM photos WHERE id = ? AND user_id = ?",
             [photoId, userId]
         );
         
@@ -489,6 +511,42 @@ app.get("/api/photos/:photoId", async (req, res) => {
     } catch (error) {
         console.error("사진 조회 오류:", error);
         res.status(500).json({ error: "사진을 불러오는 중 오류가 발생했습니다." });
+    }
+});
+
+// 사진 즐겨찾기 토글
+app.patch("/api/photos/:photoId/favorite", async (req, res) => {
+    const userId = req.session.userId;
+    const photoId = req.params.photoId;
+    const isFavorite = Boolean(req.body && req.body.isFavorite);
+
+    if (!userId) {
+        return res.status(401).json({ error: "로그인이 필요합니다." });
+    }
+
+    try {
+        const [photoCheck] = await db.promise().query(
+            "SELECT id FROM photos WHERE id = ? AND user_id = ?",
+            [photoId, userId]
+        );
+
+        if (photoCheck.length === 0) {
+            return res.status(404).json({ error: "사진을 찾을 수 없습니다." });
+        }
+
+        await db.promise().query(
+            "UPDATE photos SET is_favorite = ? WHERE id = ? AND user_id = ?",
+            [isFavorite, photoId, userId]
+        );
+
+        res.status(200).json({
+            success: true,
+            photoId: Number(photoId),
+            is_favorite: isFavorite
+        });
+    } catch (error) {
+        console.error("즐겨찾기 변경 오류:", error);
+        res.status(500).json({ error: "즐겨찾기 변경 중 오류가 발생했습니다." });
     }
 });
 
@@ -811,6 +869,7 @@ app.post("/api/points/earn", async (req, res) => {
 // 서버 시작
 const PORT = process.env.PORT || 5000;
 initializeDatabase()
+    .then(ensurePhotoFavoriteColumn)
     .then(syncDefaultDecorationItems)
     .then(() => {
         app.listen(PORT, () => {

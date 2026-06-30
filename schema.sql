@@ -11,6 +11,7 @@ CREATE TABLE IF NOT EXISTS photos (
   user_id INT NOT NULL,
   imageUrl TEXT NOT NULL,
   memo TEXT NULL,
+  is_favorite TINYINT(1) NOT NULL DEFAULT 0,
   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   CONSTRAINT fk_photos_user
     FOREIGN KEY (user_id) REFERENCES users(id)

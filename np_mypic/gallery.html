@@ -293,7 +293,7 @@
       }
     }
   </style>
-  <link rel="stylesheet" href="app.css?v=ui-fix-20260630-25">
+  <link rel="stylesheet" href="app.css?v=ui-fix-20260701-26">
 </head>
 
 <body class="gallery-page">
@@ -305,6 +305,7 @@
 
   <div class="container">
     <div class="search-container">
+      <button class="favorite-filter-btn" id="favoriteFilterBtn" type="button" onclick="toggleFavoriteFilter()" aria-pressed="false" title="즐겨찾기만 보기">★</button>
       <input type="text" id="searchInput" class="search-input" placeholder="메모로 검색...">
       <button class="search-btn" onclick="handleSearch()">🔍</button>
       <button class="clear-search-btn" id="clearSearchBtn" onclick="clearSearch()">전체보기</button>
@@ -330,6 +331,8 @@
 
   <script src="ui.js"></script>
   <script>
+    let currentPhotos = [];
+    let showFavoritesOnly = false;
     let allPhotos = []; // 전체 사진 목록 저장
     let isSearching = false; // 검색 상태 추적
 
@@ -341,6 +344,7 @@
       // 페이지 로드 시 포인트와 사진 목록 불러오기
       loadUserPoints();
       loadUserPhotos();
+      updateFavoriteFilterButton();
 
       // 업로드 버튼
       uploadBtn.addEventListener('click', () => {
@@ -411,6 +415,79 @@
 
     // 사진 목록 화면에 표시
     function displayPhotos(photos) {
+      const sourcePhotos = Array.isArray(photos) ? photos : [];
+      currentPhotos = sourcePhotos;
+      const visiblePhotos = showFavoritesOnly
+        ? sourcePhotos.filter(isPhotoFavorite)
+        : sourcePhotos;
+      const visibleGallery = document.getElementById('userGallery');
+
+      visibleGallery.innerHTML = '';
+      setGallerySummary(visiblePhotos.length, sourcePhotos.length);
+
+      if (visiblePhotos.length === 0) {
+        const message = showFavoritesOnly
+          ? '즐겨찾기한 사진이 없습니다.'
+          : (isSearching ? '검색 결과가 없습니다.' : '아직 등록된 사진이 없습니다. 사진을 업로드해보세요!');
+        renderGalleryMessage(message);
+        return;
+      }
+
+      visiblePhotos.forEach(photo => {
+        const itemDiv = document.createElement('div');
+        itemDiv.className = 'image-item';
+        itemDiv.tabIndex = 0;
+        itemDiv.setAttribute('role', 'button');
+        itemDiv.setAttribute('aria-label', `${photo.memo || '사진'} 상세보기`);
+
+        const img = document.createElement('img');
+        img.src = photo.imageUrl;
+        img.alt = photo.memo || '사용자 사진';
+        img.loading = 'lazy';
+
+        const favoriteBtn = document.createElement('button');
+        favoriteBtn.type = 'button';
+        favoriteBtn.className = `photo-favorite-btn${isPhotoFavorite(photo) ? ' is-active' : ''}`;
+        favoriteBtn.textContent = '★';
+        favoriteBtn.setAttribute('aria-pressed', String(isPhotoFavorite(photo)));
+        favoriteBtn.setAttribute('aria-label', isPhotoFavorite(photo) ? '즐겨찾기 해제' : '즐겨찾기 추가');
+        favoriteBtn.addEventListener('click', async (event) => {
+          event.preventDefault();
+          event.stopPropagation();
+          await togglePhotoFavorite(photo.id, !isPhotoFavorite(photo), favoriteBtn);
+        });
+
+        const meta = document.createElement('div');
+        meta.className = 'photo-card-meta';
+
+        const title = document.createElement('div');
+        title.className = 'photo-card-title';
+        title.textContent = photo.memo || '메모 없음';
+
+        const date = document.createElement('div');
+        date.className = 'photo-card-date';
+        date.textContent = formatPhotoDate(photo.created_at);
+
+        meta.appendChild(title);
+        meta.appendChild(date);
+
+        itemDiv.addEventListener('click', () => {
+          appNavigate(`detail.html?photoId=${photo.id}`);
+        });
+        itemDiv.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            appNavigate(`detail.html?photoId=${photo.id}`);
+          }
+        });
+
+        itemDiv.appendChild(img);
+        itemDiv.appendChild(favoriteBtn);
+        itemDiv.appendChild(meta);
+        visibleGallery.appendChild(itemDiv);
+      });
+      return;
+
       const gallery = document.getElementById('userGallery');
       gallery.innerHTML = '';
       setGallerySummary(photos.length);
@@ -473,7 +550,79 @@
       setGallerySummary(0);
     }
 
+    function isPhotoFavorite(photo) {
+      return Boolean(photo && (photo.is_favorite === true || photo.is_favorite === 1 || photo.is_favorite === '1'));
+    }
+
+    function updateFavoriteFilterButton() {
+      const btn = document.getElementById('favoriteFilterBtn');
+      if (!btn) return;
+      btn.classList.toggle('is-active', showFavoritesOnly);
+      btn.setAttribute('aria-pressed', String(showFavoritesOnly));
+      btn.title = showFavoritesOnly ? '전체 사진 보기' : '즐겨찾기만 보기';
+    }
+
+    function toggleFavoriteFilter() {
+      showFavoritesOnly = !showFavoritesOnly;
+      updateFavoriteFilterButton();
+      displayPhotos(currentPhotos.length || isSearching ? currentPhotos : allPhotos);
+    }
+
+    function setPhotoFavoriteInLists(photoId, isFavorite) {
+      const apply = photo => {
+        if (Number(photo.id) === Number(photoId)) {
+          photo.is_favorite = isFavorite;
+        }
+      };
+      allPhotos.forEach(apply);
+      currentPhotos.forEach(apply);
+    }
+
+    async function togglePhotoFavorite(photoId, isFavorite, button) {
+      if (button) {
+        button.disabled = true;
+      }
+
+      try {
+        const response = await fetch(`/api/photos/${photoId}/favorite`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ isFavorite })
+        });
+
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) {
+          throw new Error(data.error || '즐겨찾기 변경 실패');
+        }
+
+        setPhotoFavoriteInLists(photoId, Boolean(data.is_favorite));
+        displayPhotos(currentPhotos);
+      } catch (error) {
+        console.error('즐겨찾기 변경 오류:', error);
+        await appAlert(error.message || '즐겨찾기 변경 중 오류가 발생했습니다.', { title: '즐겨찾기', variant: 'error' });
+      } finally {
+        if (button) {
+          button.disabled = false;
+        }
+      }
+    }
+
     function setGallerySummary(count) {
+      const countNode = document.getElementById('galleryCount');
+      const hintNode = document.getElementById('galleryHint');
+      const total = arguments.length > 1 ? arguments[1] : count;
+      const suffix = showFavoritesOnly && total !== count ? ` / ${total}` : '';
+
+      if (showFavoritesOnly) {
+        countNode.textContent = isSearching ? `즐겨찾기 검색결과 ${count}${suffix}장` : `즐겨찾기 ${count}${suffix}장`;
+        hintNode.textContent = '별표한 사진만 보기';
+        return;
+      }
+
+      countNode.textContent = isSearching ? `검색 결과 ${count}장` : `내 사진 ${count}장`;
+      hintNode.textContent = isSearching ? '메모 검색 중' : '최근 업로드 순';
+      return;
+
       const countEl = document.getElementById('galleryCount');
       const hintEl = document.getElementById('galleryHint');
       countEl.textContent = isSearching ? `검색 결과 ${count}장` : `내 사진 ${count}장`;
