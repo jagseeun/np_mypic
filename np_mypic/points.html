@@ -155,7 +155,7 @@
             }
         }
     </style>
-    <link rel="stylesheet" href="app.css?v=ui-fix-20260701-26">
+    <link rel="stylesheet" href="app.css?v=ui-fix-20260701-27">
 </head>
 <body class="point-page">
     <button class="logout-btn" type="button" onclick="handleLogout()" aria-label="logout">
@@ -167,9 +167,14 @@
     </div>
 
     <button class="back-btn" onclick="goBack()">←</button>
-    <div class="points-display">포인트 : <span id="userPoints">0</span></div>
 
     <div class="main-content">
+        <div class="point-balance" aria-live="polite">
+            <span class="point-balance-label">포인트</span>
+            <span class="point-balance-value" id="userPoints">0</span>
+        </div>
+        <div class="point-feedback" id="pointFeedback" aria-live="polite"></div>
+
         <div class="click-counter">
             <span id="clickCount">0</span> / 10 클릭
         </div>
@@ -181,10 +186,6 @@
         <div class="instruction">
             화면을 클릭해서<br>포인트를 모아보세요! 🎉
         </div>
-    </div>
-
-    <div class="success-message" id="successMessage">
-        +1 포인트 획득! 🎊
     </div>
 
     <script src="ui.js"></script>
@@ -350,17 +351,23 @@
 
         // 성공 메시지 표시
         function showSuccessMessage(data = {}) {
-            const msg = document.getElementById('successMessage');
+            const balance = document.querySelector('.point-balance');
+            const feedback = document.getElementById('pointFeedback');
+
             if (data.boosterActivated) {
-                msg.textContent = '+1 포인트! 10초 부스터';
+                feedback.textContent = '+1 · 10초 부스터';
                 document.body.classList.add('booster-flash');
                 setTimeout(() => document.body.classList.remove('booster-flash'), 900);
             } else if (data.boosterUsed) {
-                msg.textContent = '+1 부스터 포인트';
+                feedback.textContent = '+1';
             } else {
-                msg.textContent = '+1 포인트 획득';
+                feedback.textContent = '+1';
             }
-            msg.classList.add('show');
+            balance.classList.remove('is-pulsing');
+            feedback.classList.remove('show');
+            void balance.offsetWidth;
+            balance.classList.add('is-pulsing');
+            feedback.classList.add('show');
 
             // 화면 전체에 이모지 폭죽
             for (let i = 0; i < 15; i++) {
@@ -372,8 +379,9 @@
             }
 
             setTimeout(() => {
-                msg.classList.remove('show');
-            }, 2000);
+                balance.classList.remove('is-pulsing');
+                feedback.classList.remove('show');
+            }, 900);
         }
 
         // 뒤로가기

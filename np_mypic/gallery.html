@@ -293,7 +293,7 @@
       }
     }
   </style>
-  <link rel="stylesheet" href="app.css?v=ui-fix-20260701-26">
+  <link rel="stylesheet" href="app.css?v=ui-fix-20260701-27">
 </head>
 
 <body class="gallery-page">
@@ -305,7 +305,6 @@
 
   <div class="container">
     <div class="search-container">
-      <button class="favorite-filter-btn" id="favoriteFilterBtn" type="button" onclick="toggleFavoriteFilter()" aria-pressed="false" title="즐겨찾기만 보기">★</button>
       <input type="text" id="searchInput" class="search-input" placeholder="메모로 검색...">
       <button class="search-btn" onclick="handleSearch()">🔍</button>
       <button class="clear-search-btn" id="clearSearchBtn" onclick="clearSearch()">전체보기</button>
@@ -321,7 +320,11 @@
 
     <div class="gallery-summary" id="gallerySummary" aria-live="polite">
       <span id="galleryCount">사진을 불러오는 중...</span>
-      <span id="galleryHint">최근 업로드 순</span>
+      <div class="gallery-sort-control" role="group" aria-label="사진 정렬">
+        <button type="button" class="gallery-sort-btn" data-sort="oldest" onclick="setGallerySort('oldest')">오래된 순</button>
+        <button type="button" class="gallery-sort-btn" data-sort="favorite" onclick="setGallerySort('favorite')">즐겨찾기 순</button>
+        <button type="button" class="gallery-sort-btn" data-sort="newest" onclick="setGallerySort('newest')">최신순</button>
+      </div>
     </div>
 
     <section class="gallery-container">
@@ -332,7 +335,7 @@
   <script src="ui.js"></script>
   <script>
     let currentPhotos = [];
-    let showFavoritesOnly = false;
+    let gallerySort = 'newest';
     let allPhotos = []; // 전체 사진 목록 저장
     let isSearching = false; // 검색 상태 추적
 
@@ -344,7 +347,7 @@
       // 페이지 로드 시 포인트와 사진 목록 불러오기
       loadUserPoints();
       loadUserPhotos();
-      updateFavoriteFilterButton();
+      updateGallerySortButtons();
 
       // 업로드 버튼
       uploadBtn.addEventListener('click', () => {
@@ -417,18 +420,14 @@
     function displayPhotos(photos) {
       const sourcePhotos = Array.isArray(photos) ? photos : [];
       currentPhotos = sourcePhotos;
-      const visiblePhotos = showFavoritesOnly
-        ? sourcePhotos.filter(isPhotoFavorite)
-        : sourcePhotos;
+      const visiblePhotos = sortPhotosForDisplay(sourcePhotos);
       const visibleGallery = document.getElementById('userGallery');
 
       visibleGallery.innerHTML = '';
       setGallerySummary(visiblePhotos.length, sourcePhotos.length);
 
       if (visiblePhotos.length === 0) {
-        const message = showFavoritesOnly
-          ? '즐겨찾기한 사진이 없습니다.'
-          : (isSearching ? '검색 결과가 없습니다.' : '아직 등록된 사진이 없습니다. 사진을 업로드해보세요!');
+        const message = isSearching ? '검색 결과가 없습니다.' : '아직 등록된 사진이 없습니다. 사진을 업로드해보세요!';
         renderGalleryMessage(message);
         return;
       }
@@ -554,17 +553,43 @@
       return Boolean(photo && (photo.is_favorite === true || photo.is_favorite === 1 || photo.is_favorite === '1'));
     }
 
-    function updateFavoriteFilterButton() {
-      const btn = document.getElementById('favoriteFilterBtn');
-      if (!btn) return;
-      btn.classList.toggle('is-active', showFavoritesOnly);
-      btn.setAttribute('aria-pressed', String(showFavoritesOnly));
-      btn.title = showFavoritesOnly ? '전체 사진 보기' : '즐겨찾기만 보기';
+    function getPhotoTime(photo) {
+      const time = new Date(photo.created_at).getTime();
+      return Number.isFinite(time) ? time : 0;
     }
 
-    function toggleFavoriteFilter() {
-      showFavoritesOnly = !showFavoritesOnly;
-      updateFavoriteFilterButton();
+    function sortPhotosForDisplay(photos) {
+      const sorted = [...photos];
+
+      if (gallerySort === 'oldest') {
+        sorted.sort((a, b) => getPhotoTime(a) - getPhotoTime(b));
+        return sorted;
+      }
+
+      if (gallerySort === 'favorite') {
+        sorted.sort((a, b) => {
+          const favoriteDiff = Number(isPhotoFavorite(b)) - Number(isPhotoFavorite(a));
+          return favoriteDiff || (getPhotoTime(b) - getPhotoTime(a));
+        });
+        return sorted;
+      }
+
+      sorted.sort((a, b) => getPhotoTime(b) - getPhotoTime(a));
+      return sorted;
+    }
+
+    function updateGallerySortButtons() {
+      document.querySelectorAll('.gallery-sort-btn').forEach(button => {
+        const isActive = button.dataset.sort === gallerySort;
+        button.classList.toggle('is-active', isActive);
+        button.setAttribute('aria-pressed', String(isActive));
+      });
+    }
+
+    function setGallerySort(sortType) {
+      if (!['oldest', 'favorite', 'newest'].includes(sortType)) return;
+      gallerySort = sortType;
+      updateGallerySortButtons();
       displayPhotos(currentPhotos.length || isSearching ? currentPhotos : allPhotos);
     }
 
@@ -596,6 +621,9 @@
         }
 
         setPhotoFavoriteInLists(photoId, Boolean(data.is_favorite));
+        if (gallerySort === 'favorite') {
+          updateGallerySortButtons();
+        }
         displayPhotos(currentPhotos);
       } catch (error) {
         console.error('즐겨찾기 변경 오류:', error);
@@ -609,24 +637,7 @@
 
     function setGallerySummary(count) {
       const countNode = document.getElementById('galleryCount');
-      const hintNode = document.getElementById('galleryHint');
-      const total = arguments.length > 1 ? arguments[1] : count;
-      const suffix = showFavoritesOnly && total !== count ? ` / ${total}` : '';
-
-      if (showFavoritesOnly) {
-        countNode.textContent = isSearching ? `즐겨찾기 검색결과 ${count}${suffix}장` : `즐겨찾기 ${count}${suffix}장`;
-        hintNode.textContent = '별표한 사진만 보기';
-        return;
-      }
-
       countNode.textContent = isSearching ? `검색 결과 ${count}장` : `내 사진 ${count}장`;
-      hintNode.textContent = isSearching ? '메모 검색 중' : '최근 업로드 순';
-      return;
-
-      const countEl = document.getElementById('galleryCount');
-      const hintEl = document.getElementById('galleryHint');
-      countEl.textContent = isSearching ? `검색 결과 ${count}장` : `내 사진 ${count}장`;
-      hintEl.textContent = isSearching ? '메모 검색 중' : '최근 업로드 순';
     }
 
     function formatPhotoDate(value) {
