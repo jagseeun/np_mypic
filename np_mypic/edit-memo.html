@@ -204,9 +204,13 @@
             }
         }
     </style>
-    <link rel="stylesheet" href="app.css?v=ui-fix-20260630-8">
+    <link rel="stylesheet" href="app.css?v=ui-fix-20260630-16">
 </head>
 <body class="memo-page">
+    <button class="logout-btn" type="button" onclick="handleLogout()" aria-label="logout">
+        <img src="logout.png" alt="logout">
+    </button>
+
     <div class="header">
         <h1 class="title">My Pic!</h1>
     </div>
@@ -303,7 +307,7 @@
                 
                 // 이미지 제목(수정 전 메모) 표시
                 const title = photo.memo || '메모 없음';
-                document.getElementById('imageTitle').textContent = title.length > 10 ? title.substring(0, 10) + '...' : title;
+                document.getElementById('imageTitle').textContent = title;
                 
                 // 기존 메모를 입력창에 표시
                 const memoInput = document.getElementById('memoInput');
@@ -376,6 +380,17 @@
         }
 
         // 뒤로가기
+        async function handleLogout() {
+            try {
+                const res = await fetch('/logout', { method: 'POST' });
+                if (res.ok) {
+                    appNavigate('index.html', { replace: true });
+                }
+            } catch (err) {
+                console.error('Logout error:', err);
+            }
+        }
+
         async function goBack() {
             if (await appConfirm('수정을 취소하시겠습니까?', { title: '나가기', confirmText: '나가기' })) {
                 appNavigate(`detail.html?photoId=${photoId}`);

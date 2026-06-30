@@ -195,7 +195,7 @@
             }
         }
     </style>
-    <link rel="stylesheet" href="app.css?v=ui-fix-20260630-8">
+    <link rel="stylesheet" href="app.css?v=ui-fix-20260630-16">
 </head>
 <body class="detail-page">
     <button class="logout-btn" onclick="handleLogout()">
@@ -302,7 +302,7 @@
                 
                 // 정보 표시
                 const title = photo.memo || '메모 없음';
-                document.getElementById('imageTitle').textContent = title.length > 10 ? title.substring(0, 10) + '...' : title;
+                document.getElementById('imageTitle').textContent = title;
                 document.getElementById('photoMemo').textContent = photo.memo || '메모 없음';
                 
                 // 날짜 포맷팅

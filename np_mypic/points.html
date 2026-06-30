@@ -155,9 +155,13 @@
             }
         }
     </style>
-    <link rel="stylesheet" href="app.css?v=ui-fix-20260630-8">
+    <link rel="stylesheet" href="app.css?v=ui-fix-20260630-16">
 </head>
 <body class="point-page">
+    <button class="logout-btn" type="button" onclick="handleLogout()" aria-label="logout">
+        <img src="logout.png" alt="logout">
+    </button>
+
     <div class="header">
         <h1 class="title">My Pic!</h1>
     </div>
@@ -211,8 +215,7 @@
 
         // 화면 클릭 이벤트
         document.body.addEventListener('click', async (e) => {
-            // 뒤로가기 버튼 클릭은 무시
-            if (e.target.classList.contains('back-btn')) {
+            if (e.target.closest('.back-btn, .logout-btn')) {
                 return;
             }
 
@@ -301,6 +304,17 @@
         }
 
         // 뒤로가기
+        async function handleLogout() {
+            try {
+                const res = await fetch('/logout', { method: 'POST' });
+                if (res.ok) {
+                    appNavigate('index.html', { replace: true });
+                }
+            } catch (err) {
+                console.error('Logout error:', err);
+            }
+        }
+
         function goBack() {
             appNavigate('gallery.html');
         }

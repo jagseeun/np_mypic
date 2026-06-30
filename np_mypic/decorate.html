@@ -225,7 +225,7 @@
             }
         }
     </style>
-    <link rel="stylesheet" href="app.css?v=ui-fix-20260630-8">
+    <link rel="stylesheet" href="app.css?v=ui-fix-20260630-16">
 </head>
 <body class="editor-page">
     <button class="logout-btn" type="button" onclick="handleLogout()" aria-label="로그아웃">
@@ -359,7 +359,7 @@
                 
                 // 제목 표시 (10자 넘으면 자르기)
                 const title = photo.memo || '메모 없음';
-                document.getElementById('imageTitle').textContent = title.length > 10 ? title.substring(0, 10) + '...' : title;
+                document.getElementById('imageTitle').textContent = title;
 
                 // 기존 꾸미기 데이터 불러오기
                 await loadExistingDecorations();
