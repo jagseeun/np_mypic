@@ -3760,3 +3760,138 @@ html body.upload-page .logout-btn img {
     min-height: 40px !important;
   }
 }
+
+/* Final upload detail placement: use the card space instead of burning it as margin. */
+.upload-page.upload-detail-active .container.upload-card {
+  width: min(980px, calc(100vw - 32px)) !important;
+  max-width: min(980px, calc(100vw - 32px)) !important;
+  height: auto !important;
+  max-height: calc(100dvh - var(--page-logo-bottom) - 28px) !important;
+  padding: 24px 26px 26px 78px !important;
+  overflow: visible !important;
+}
+
+.upload-page.upload-detail-active .upload-detail {
+  position: relative !important;
+  height: auto !important;
+  display: block !important;
+}
+
+.upload-page.upload-detail-active .back-to-select {
+  position: absolute !important;
+  top: 0 !important;
+  left: -54px !important;
+  width: 46px !important;
+  height: 46px !important;
+  margin: 0 !important;
+  z-index: 2 !important;
+}
+
+.upload-page.upload-detail-active .preview-content {
+  height: auto !important;
+  min-height: 0 !important;
+  overflow: visible !important;
+  display: grid !important;
+  grid-template-columns: minmax(300px, 390px) minmax(390px, 440px) !important;
+  gap: 22px !important;
+  align-items: stretch !important;
+  justify-content: center !important;
+}
+
+.upload-page.upload-detail-active .preview-image-box {
+  width: 100% !important;
+  max-width: 390px !important;
+  height: auto !important;
+  max-height: none !important;
+  aspect-ratio: 1 / 1 !important;
+  align-self: start !important;
+  justify-self: center !important;
+}
+
+.upload-page.upload-detail-active .memo-area {
+  width: 100% !important;
+  height: 390px !important;
+  min-height: 0 !important;
+  display: grid !important;
+  grid-template-rows: minmax(0, 1fr) 54px 20px !important;
+  gap: 12px !important;
+  align-self: start !important;
+}
+
+.upload-page.upload-detail-active .memo-panel {
+  min-height: 0 !important;
+  padding: 18px !important;
+  gap: 12px !important;
+}
+
+.upload-page.upload-detail-active .memo-input-shell {
+  padding: 14px 16px !important;
+}
+
+.upload-page.upload-detail-active #memoInput {
+  min-height: 0 !important;
+  height: 100% !important;
+  font-size: 1.16rem !important;
+}
+
+@media (min-width: 761px) {
+  .upload-page.upload-detail-active .container.upload-card {
+    top: calc(var(--page-logo-bottom) + 34px) !important;
+    transform: translateX(-50%) !important;
+  }
+}
+
+@media (max-width: 760px) {
+  .upload-page.upload-detail-active .container.upload-card {
+    width: min(370px, calc(100vw - 28px)) !important;
+    max-width: min(370px, calc(100vw - 28px)) !important;
+    height: auto !important;
+    top: calc(var(--page-logo-bottom) + 58px) !important;
+    transform: translateX(-50%) !important;
+    max-height: calc(100dvh - var(--page-logo-bottom) - 10px) !important;
+    padding: 60px 14px 16px !important;
+    overflow: visible !important;
+  }
+
+  .upload-page.upload-detail-active .upload-detail {
+    position: static !important;
+  }
+
+  .upload-page.upload-detail-active .back-to-select {
+    top: 14px !important;
+    left: 14px !important;
+    width: 42px !important;
+    height: 42px !important;
+  }
+
+  .upload-page.upload-detail-active .preview-content {
+    grid-template-columns: minmax(0, 1fr) !important;
+    grid-template-rows: auto auto !important;
+    gap: 12px !important;
+  }
+
+  .upload-page.upload-detail-active .preview-image-box {
+    width: min(100%, 246px) !important;
+    max-width: 246px !important;
+  }
+
+  .upload-page.upload-detail-active .memo-area {
+    height: auto !important;
+    grid-template-rows: minmax(188px, auto) 48px 18px !important;
+    gap: 10px !important;
+  }
+
+  .upload-page.upload-detail-active .memo-panel {
+    padding: 15px !important;
+    gap: 10px !important;
+  }
+
+  .upload-page.upload-detail-active .memo-input-shell {
+    padding: 12px 14px !important;
+  }
+
+  .upload-page.upload-detail-active #memoInput {
+    min-height: 118px !important;
+    font-size: 1.02rem !important;
+  }
+}
