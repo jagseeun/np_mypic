@@ -396,14 +396,14 @@
             }
         }
 
-        function goBack() {
+        function getSafeReturnTo() {
             const returnTo = new URLSearchParams(window.location.search).get('returnTo');
-            if (returnTo && !/^(?:[a-z]+:)?\/\//i.test(returnTo) && !returnTo.startsWith('/')) {
-                appNavigate(returnTo);
-                return;
-            }
+            const match = /^(?:\.\/)?decorate\.html\?photoId=(\d+)$/i.exec(returnTo || '');
+            return match ? `decorate.html?photoId=${match[1]}` : null;
+        }
 
-            appNavigate('gallery.html');
+        function goBack() {
+            appNavigate(getSafeReturnTo() || 'gallery.html');
         }
     </script>
 </body>

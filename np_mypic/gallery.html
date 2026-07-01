@@ -485,58 +485,6 @@
         itemDiv.appendChild(meta);
         visibleGallery.appendChild(itemDiv);
       });
-      return;
-
-      const gallery = document.getElementById('userGallery');
-      gallery.innerHTML = '';
-      setGallerySummary(photos.length);
-
-      if (photos.length === 0) {
-        const message = isSearching ? '검색 결과가 없습니다.' : '아직 등록된 사진이 없습니다. 사진을 업로드해보세요!';
-        renderGalleryMessage(message);
-        return;
-      }
-
-      photos.forEach(photo => {
-        const itemDiv = document.createElement('div');
-        itemDiv.className = 'image-item';
-        itemDiv.tabIndex = 0;
-        itemDiv.setAttribute('role', 'button');
-        itemDiv.setAttribute('aria-label', `${photo.memo || '사진'} 상세보기`);
-
-        const img = document.createElement('img');
-        img.src = photo.imageUrl;
-        img.alt = photo.memo || '사용자 사진';
-        img.loading = 'lazy';
-
-        const meta = document.createElement('div');
-        meta.className = 'photo-card-meta';
-
-        const title = document.createElement('div');
-        title.className = 'photo-card-title';
-        title.textContent = photo.memo || '메모 없음';
-
-        const date = document.createElement('div');
-        date.className = 'photo-card-date';
-        date.textContent = formatPhotoDate(photo.created_at);
-
-        meta.appendChild(title);
-        meta.appendChild(date);
-
-        itemDiv.addEventListener('click', () => {
-          appNavigate(`detail.html?photoId=${photo.id}`);
-        });
-        itemDiv.addEventListener('keydown', (e) => {
-          if (e.key === 'Enter' || e.key === ' ') {
-            e.preventDefault();
-            appNavigate(`detail.html?photoId=${photo.id}`);
-          }
-        });
-
-        itemDiv.appendChild(img);
-        itemDiv.appendChild(meta);
-        gallery.appendChild(itemDiv);
-      });
     }
 
     function renderGalleryMessage(message) {

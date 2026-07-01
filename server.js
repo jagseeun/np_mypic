@@ -21,6 +21,8 @@ const usesPostgres = dbClient === "postgres" || dbClient === "postgresql" || Boo
 const sessionSecret = process.env.SESSION_SECRET || 'dev_secret_key_for_mypic';
 const { db, sessionStore, initializeDatabase } = require("./db");
 const UPLOAD_REWARD_POINTS = 30;
+const BOOSTER_CLICK_MIN_INTERVAL_MS = 120;
+const lastBoosterClickByUser = new Map();
 const DEFAULT_DECORATION_ITEMS = [
     { name: "리본", emoji: "🎀", price: 20 },
     { name: "엄지척", emoji: "👍", price: 15 },
@@ -804,23 +806,61 @@ app.post("/api/points/earn", async (req, res) => {
     let boosterActivated = false;
     let boosterUsed = false;
 
-    if (isBoosterClick && !boosterActive) {
-        req.session.pointBoosterExpiresAt = 0;
-        return res.status(400).json({
-            error: "부스터 시간이 끝났습니다.",
-            pointBoosterActive: false,
-            pointBoosterSecondsRemaining: 0
-        });
-    }
+    const getPointStatePayload = async () => {
+        const [rows] = await db.promise().query(
+            "SELECT points FROM users WHERE id = ?",
+            [userId]
+        );
+        const latestBoosterExpiresAt = Number(req.session.pointBoosterExpiresAt) || 0;
+        const latestBoosterMsRemaining = Math.max(0, latestBoosterExpiresAt - Date.now());
 
-    if (isBoosterClick) {
-        boosterUsed = true;
-    }
-    if (!isBoosterClick && req.session.lastPointEarnedAt && now - req.session.lastPointEarnedAt < 1000) {
-        return res.status(429).json({ error: "잠시 후 다시 포인트를 받을 수 있습니다." });
-    }
+        return {
+            points: rows[0]?.points ?? 0,
+            newPoints: rows[0]?.points ?? 0,
+            pointBoosterActive: latestBoosterMsRemaining > 0,
+            pointBoosterSecondsRemaining: Math.ceil(latestBoosterMsRemaining / 1000)
+        };
+    };
 
     try {
+        if (isBoosterClick && !boosterActive) {
+            req.session.pointBoosterExpiresAt = 0;
+            return res.status(400).json({
+                error: "부스터 시간이 끝났습니다.",
+                ...(await getPointStatePayload()),
+                pointBoosterActive: false,
+                pointBoosterSecondsRemaining: 0
+            });
+        }
+
+        if (isBoosterClick) {
+            const lastBoosterClickAt = lastBoosterClickByUser.get(userId) || 0;
+            if (lastBoosterClickAt && now - lastBoosterClickAt < BOOSTER_CLICK_MIN_INTERVAL_MS) {
+                return res.status(429).json({
+                    error: "잠시 후 다시 포인트를 받을 수 있습니다.",
+                    ...(await getPointStatePayload())
+                });
+            }
+
+            lastBoosterClickByUser.set(userId, now);
+            if (lastBoosterClickByUser.size > 1000) {
+                for (const [trackedUserId, lastClickAt] of lastBoosterClickByUser.entries()) {
+                    if (now - lastClickAt > BOOSTER_DURATION_MS) {
+                        lastBoosterClickByUser.delete(trackedUserId);
+                    }
+                }
+            }
+
+            boosterUsed = true;
+        }
+
+        if (!isBoosterClick && req.session.lastPointEarnedAt && now - req.session.lastPointEarnedAt < 1000) {
+            return res.status(429).json({
+                error: "잠시 후 다시 포인트를 받을 수 있습니다.",
+                ...(await getPointStatePayload())
+            });
+        }
+
         if (!isBoosterClick) {
             req.session.lastPointEarnedAt = now;
             pointEarnStreak += 1;
